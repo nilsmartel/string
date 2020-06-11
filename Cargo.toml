@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 structopt = "0.3.14"               # Parse command line argument by defining a struct.
+itertools = "0.9.0"          # Extra iterator adaptors, iterator methods, free functions, and macros.
