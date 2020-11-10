@@ -1,5 +1,5 @@
 [package]
-name = "string"
+name = "shell-str"
 description = "Obvious CLI for basic string manipulation"
 license = "GNU"
 # homepage = "https://github.com/nilsmartel/string"
