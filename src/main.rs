@@ -1,5 +1,7 @@
+mod util;
+
 use itertools::join;
-use std::io::{Read, Write};
+use std::io::Write;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -29,7 +31,7 @@ enum StringCommand {
 
 fn main() {
     let config: StringCommand = StringCommand::from_args();
-    let input = stdin_as_string();
+    let input = util::stdin_as_string();
 
     use StringCommand::*;
     match config {
@@ -67,12 +69,4 @@ fn substr(input: &str, start: usize, end: usize) -> String {
     let amount = end - start;
 
     input.chars().skip(start).take(amount).collect()
-}
-
-fn stdin_as_string() -> String {
-    let mut buffer = String::new();
-    std::io::stdin()
-        .read_to_string(&mut buffer)
-        .expect("failed to read stdin to string.");
-    buffer
 }
