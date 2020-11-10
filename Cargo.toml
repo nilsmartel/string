@@ -1,5 +1,5 @@
 [package]
-name = "shell-str"
+name = "shell-string"
 description = "Obvious CLI for basic string manipulation"
 license = "Unlicense OR MIT"
 # homepage = "https://github.com/nilsmartel/string"
@@ -15,6 +15,7 @@ authors = ["Nils Martel <nilsmartel@yahoo.de>"]
 edition = "2018"
 
 [[bin]]
+path = "src/main.rs"
 name = "string"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
