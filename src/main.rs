@@ -4,6 +4,8 @@ use itertools::join;
 use std::io::Write;
 use structopt::StructOpt;
 
+const STDOUT_WRITE_ERROR: &'static str = "failed to write to stdout";
+
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
@@ -21,11 +23,17 @@ enum StringCommand {
     },
     /// Returns the length of string
     Length,
+    /// Replace all matching words
     Replace {
         #[structopt(short, long = "match")]
         matching: String,
         #[structopt(short, long)]
         with: String,
+    },
+    /// Pick one line
+    Line {
+        #[structopt(short)]
+        number: usize,
     },
 }
 
@@ -46,6 +54,20 @@ fn main() {
             let result = join(input.split(&matching), &with);
             println!("{}", result);
         }
+        Line { number } => println!("{}", pick_line(&input, number)),
+    }
+}
+
+fn pick_line(input: &str, number: usize) -> &str {
+    if let Some((_, line)) = input
+        .split("\n")
+        .enumerate()
+        .find(|(index, _)| *index == number)
+    {
+        line
+    } else {
+        eprintln!("input does not have enough lines");
+        std::process::exit(1);
     }
 }
 
@@ -54,15 +76,14 @@ fn split(input: &str, separator: &str) {
     let mut lock = stdout.lock();
 
     for line in input.split(separator) {
-        lock.write(line.as_bytes())
-            .expect("failed to write to stdout");
-        lock.write(b"\n").unwrap();
+        lock.write(line.as_bytes()).expect(STDOUT_WRITE_ERROR);
+        lock.write(b"\n").expect(STDOUT_WRITE_ERROR);
     }
 }
 
 fn substr(input: &str, start: usize, end: usize) -> String {
     if start > end {
-        println!("start value must be smaller than end value");
+        eprintln!("start value must be smaller than end value");
         std::process::exit(1);
     }
 
