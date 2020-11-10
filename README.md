@@ -1,9 +1,11 @@
 # shell-string
 
+Simple CLI to perform common string operations
+
 ## Usage
 
 ```
-shell-string 0.1.4
+shell-string 0.1.5
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
