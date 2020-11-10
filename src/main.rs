@@ -30,9 +30,10 @@ enum StringCommand {
         #[structopt(short, long)]
         with: String,
     },
-    /// Pick one line
+    /// Pick a single line by linenumber
     Line {
         #[structopt(short)]
+        /// starting at 0
         number: usize,
     },
 }
