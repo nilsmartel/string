@@ -42,7 +42,7 @@ fn execute(script: &str, shell: &[&str]) -> String {
         .spawn()
         .expect(&format!("failed to spawn process in shell {:?}", shell));
     {
-        let mut stdin = command
+        let stdin = command
             .stdin
             .as_mut()
             .expect("failed to open stdin of command");
