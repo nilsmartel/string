@@ -1,12 +1,21 @@
 [package]
 name = "shell-str"
 description = "Obvious CLI for basic string manipulation"
-license = "GNU"
+license = "Unlicense OR MIT"
 # homepage = "https://github.com/nilsmartel/string"
 repository = "https://github.com/nilsmartel/string"
+readme = "README.md"
 version = "0.1.1"
+keywords = ["shell", "cli", "string"]
+categories = [
+    "command-line-utilities",
+    "text-editors"
+]
 authors = ["Nils Martel <nilsmartel@yahoo.de>"]
 edition = "2018"
+
+[[bin]]
+name = "string"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
