@@ -1,48 +1,6 @@
 use itertools::join;
-use std::io::Read;
+use std::io::{Read, Write};
 use structopt::StructOpt;
-fn main() {
-    let config: StringCommand = StringCommand::from_args();
-    let input = stdin_as_string();
-
-    use StringCommand::*;
-    match config {
-        Substr { start, end } => {
-            // please don't do this at home. Byte indexing isn't okay.
-            println!("{}", substr(&input, start, end));
-        }
-        Split { separator } => {
-            for line in input.split(&separator) {
-                // performs poorly, locks stdout over and over again
-                println!("{}", line);
-            }
-        }
-        Length => println!("{}", input.len()),
-        Replace { matching, with } => {
-            let result = join(input.split(&matching), &with);
-            println!("{}", result);
-        }
-    }
-}
-
-fn substr(input: &str, start: usize, end: usize) -> String {
-    if start > end {
-        println!("start value must be smaller than end value");
-        std::process::exit(1);
-    }
-
-    let amount = end - start;
-
-    input.chars().skip(start).take(amount).collect()
-}
-
-fn stdin_as_string() -> String {
-    let mut buffer = String::new();
-    std::io::stdin()
-        .read_to_string(&mut buffer)
-        .expect("failed to read stdin to string.");
-    buffer
-}
 
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
@@ -67,4 +25,54 @@ enum StringCommand {
         #[structopt(short, long)]
         with: String,
     },
+}
+
+fn main() {
+    let config: StringCommand = StringCommand::from_args();
+    let input = stdin_as_string();
+
+    use StringCommand::*;
+    match config {
+        Substr { start, end } => {
+            println!("{}", substr(&input, start, end));
+        }
+        Split { separator } => {
+            split(&input, &separator);
+        }
+        Length => println!("{}", input.len()),
+        Replace { matching, with } => {
+            let result = join(input.split(&matching), &with);
+            println!("{}", result);
+        }
+    }
+}
+
+fn split(input: &str, separator: &str) {
+    let stdout = std::io::stdout();
+    let mut lock = stdout.lock();
+
+    for line in input.split(separator) {
+        lock.write(line.as_bytes())
+            .expect("failed to write to stdout");
+        lock.write(b"\n").unwrap();
+    }
+}
+
+fn substr(input: &str, start: usize, end: usize) -> String {
+    if start > end {
+        println!("start value must be smaller than end value");
+        std::process::exit(1);
+    }
+
+    let amount = end - start;
+
+    input.chars().skip(start).take(amount).collect()
+}
+
+fn stdin_as_string() -> String {
+    let mut buffer = String::new();
+    std::io::stdin()
+        .read_to_string(&mut buffer)
+        .expect("failed to read stdin to string.");
+    buffer
 }
