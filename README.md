@@ -1,11 +1,11 @@
 # shell-string
 
 ```
-shell-string 0.1.0
+shell-string 0.1.1
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
-    shell-string <SUBCOMMAND>
+    string <SUBCOMMAND>
 
 FLAGS:
     -h, --help       Prints help information
