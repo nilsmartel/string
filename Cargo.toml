@@ -1,12 +1,12 @@
 [package]
 name = "shell-string"
-version = "0.1.5"
+version = "0.1.6"
 description = "Obvious CLI for basic string manipulation"
 license = "Unlicense OR MIT"
 # homepage = "https://github.com/nilsmartel/string"
 repository = "https://github.com/nilsmartel/string"
 readme = "README.md"
-keywords = ["shell", "cli", "string"]
+keywords = ["shell", "cli", "string", "template", "templating"]
 categories = [
     "command-line-utilities",
     "text-editors"
