@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-shell-string 0.1.1
+shell-string 0.1.4
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -16,7 +16,8 @@ FLAGS:
 SUBCOMMANDS:
     help       Prints this message or the help of the given subcommand(s)
     length     Returns the length of string
-    replace
+    line       Pick a single line by linenumber
+    replace    Replace all matching words
     split      Split up a string by a separator and print the parts on separate lines
     substr     Extract a part of a given string
 ```
