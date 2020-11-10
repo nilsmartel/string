@@ -1,4 +1,6 @@
+mod templating;
 mod util;
+use templating::template;
 
 use itertools::join;
 use std::io::Write;
@@ -36,6 +38,20 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
+    /// Useful for templating, replace sections of input with the output of a shell command or script
+    Template {
+        #[structopt(default_value = "{{", long = "begin")]
+        /// Delimiter indicating beginning of command
+        begin: String,
+
+        #[structopt(default_value = "}}", long = "end")]
+        /// Delimiter indicating end of command
+        end: String,
+
+        #[structopt(default_value = "sh", long)]
+        /// in which shell the commands should be piped
+        shell: Vec<String>,
+    },
 }
 
 fn main() {
@@ -56,6 +72,14 @@ fn main() {
             println!("{}", result);
         }
         Line { number } => println!("{}", pick_line(&input, number)),
+        Template { shell, begin, end } => {
+            let result = template(&input, shell, begin, end);
+
+            match result {
+                Ok(output) => println!("{}", result),
+                Err(e) => eprintln!("templating failed: {:#?}", e),
+            }
+        }
     }
 }
 
