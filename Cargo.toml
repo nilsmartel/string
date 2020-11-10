@@ -1,5 +1,9 @@
 [package]
 name = "string"
+description = "Obvious CLI for basic string manipulation"
+license = "GNU"
+# homepage = "https://github.com/nilsmartel/string"
+repository = "https://github.com/nilsmartel/string"
 version = "0.1.1"
 authors = ["Nils Martel <nilsmartel@yahoo.de>"]
 edition = "2018"
