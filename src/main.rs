@@ -73,12 +73,11 @@ fn main() {
         }
         Line { number } => println!("{}", pick_line(&input, number)),
         Template { shell, begin, end } => {
-            let result = template(&input, shell, begin, end);
+            let shell: Vec<&str> = shell.iter().map(|s| s.as_str()).collect();
 
-            match result {
-                Ok(output) => println!("{}", result),
-                Err(e) => eprintln!("templating failed: {:#?}", e),
-            }
+            let result = template(&input, &shell, &begin, &end);
+
+            println!("{}", result)
         }
     }
 }
