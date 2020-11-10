@@ -9,7 +9,7 @@ fn main() {
     match config {
         Substr { start, end } => {
             // please don't do this at home. Byte indexing isn't okay.
-            println!("{}", &input[start..end]);
+            println!("{}", substr(&input, start, end));
         }
         Split { separator } => {
             for line in input.split(&separator) {
@@ -23,6 +23,17 @@ fn main() {
             println!("{}", result);
         }
     }
+}
+
+fn substr(input: &str, start: usize, end: usize) -> String {
+    if start > end {
+        println!("start value must be smaller than end value");
+        std::process::exit(1);
+    }
+
+    let amount = end - start;
+
+    input.chars().skip(start).take(amount).collect()
 }
 
 fn stdin_as_string() -> String {
