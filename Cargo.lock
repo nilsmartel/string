@@ -131,7 +131,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "string"
+name = "shell-string"
 version = "0.1.1"
 dependencies = [
  "itertools",
