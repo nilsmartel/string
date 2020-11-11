@@ -4,7 +4,6 @@ use std::{io::Write, process::Stdio};
 use nom::{
     bytes::complete::{tag, take_until},
     combinator::opt,
-    multi::many1,
     sequence::{preceded, terminated},
     IResult,
 };
@@ -20,7 +19,7 @@ pub fn template(input: &str, shell: &[&str], begin: &str, end: &str) -> String {
 
     // unwrapping is safe, this will always be Ok, rest will always be ""
     // TODO test this
-    let ast = parse(input, begin, end).unwrap().1;
+    let ast = parse(input, begin, end);
 
     let mut buffer = String::with_capacity(256);
 
@@ -70,8 +69,22 @@ struct Content<'a> {
     command: Option<&'a str>,
 }
 
-fn parse<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Vec<Content<'a>>> {
-    many1(|s| command(s, begin, end))(s)
+fn parse<'a>(s: &'a str, begin: &str, end: &str) -> Vec<Content<'a>> {
+    // many1(|st| command(st, begin, end))(s)
+    let mut input = s;
+    let mut result = Vec::new();
+    loop {
+        let (rest, command) = command(input, begin, end).unwrap();
+        result.push(command);
+
+        if rest == "" {
+            break
+        }
+
+        input = rest;
+    }
+
+    return result
 }
 
 /// Parse the first command from a given text, returnes the rest of the text
@@ -92,16 +105,19 @@ fn parse<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Vec<Content
 /// ```
 fn command<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Content<'a>> {
     let (rest, text) = opt(take_until(begin))(s)?;
-    if text.is_none() {
-        return Ok((
+
+    let text = match text {
+        Some(text) => text,
+        // when the beginning delimiter wasn't found, just return the whole string.
+        // No command is in here.
+        None => return Ok((
             "",
             Content {
                 text: s,
                 command: None,
             },
-        ));
-    }
-    let text = text.unwrap();
+        )),
+    };
 
     let (rest, command) = opt(preceded(tag(begin), terminated(take_until(end), tag(end))))(rest)?;
 
@@ -110,7 +126,76 @@ fn command<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Content<'
 
 #[cfg(test)]
 mod test {
-    use super::{command, parse, Content};
+    use super::*;
+
+    #[test]
+    fn full_empty() {
+        let res = parse("", "{", "}");
+
+        let content = Content {
+            text: "",
+            command: None,
+        };
+
+        assert_eq!(res, vec![content]);
+    }
+
+    #[test]
+    fn full_single() {
+        let res = parse("hello", "{", "}");
+
+        let content = Content {
+            text: "hello",
+            command: None,
+        };
+
+        assert_eq!(res, vec![content]);
+    }
+
+    #[test]
+    fn full_command() {
+        let res = parse("hello {{echo USER}}!", "{{", "}}");
+
+        let content = vec![
+            Content {
+                text: "hello ",
+                command: Some("echo USER"),
+            },
+            Content {
+                text: "!",
+                command: None,
+            },
+        ];
+
+        assert_eq!(res, content);
+    }
+
+    #[test]
+    fn full_multi() {
+        let res = parse(
+            "hello {{echo USER}}! How do you {{echo FEEL}} today?",
+            "{{",
+            "}}",
+        );
+
+        let content = vec![
+            Content {
+                text: "hello ",
+                command: Some("echo USER"),
+            },
+            Content {
+                text: "! How do you ",
+                command: Some("echo FEEL"),
+            },
+            Content {
+                text: " today?",
+                command: None,
+            },
+        ];
+
+        assert_eq!(res, content);
+    }
+
     #[test]
     fn parsing() {
         let res = command("hello {myCommand}! How are you?", "{", "}");
@@ -140,6 +225,36 @@ mod test {
         };
 
         assert_eq!(res.0, rest);
+        assert_eq!(res.1, content);
+    }
+
+    #[test]
+    fn parsing_empty() {
+        let res = command("", "{", "}");
+        assert!(res.is_ok());
+        let res = res.unwrap();
+
+        let content = Content {
+            text: "",
+            command: None,
+        };
+
+        assert_eq!(res.0, "");
+        assert_eq!(res.1, content);
+    }
+
+    #[test]
+    fn parsing_command_only() {
+        let res = command("$echo hello$", "$", "$");
+        assert!(res.is_ok());
+        let res = res.unwrap();
+
+        let content = Content {
+            text: "",
+            command: Some("echo hello"),
+        };
+
+        assert_eq!(res.0, "");
         assert_eq!(res.1, content);
     }
 }
