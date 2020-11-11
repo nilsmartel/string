@@ -78,13 +78,13 @@ fn parse<'a>(s: &'a str, begin: &str, end: &str) -> Vec<Content<'a>> {
         result.push(command);
 
         if rest == "" {
-            break
+            break;
         }
 
         input = rest;
     }
 
-    return result
+    return result;
 }
 
 /// Parse the first command from a given text, returnes the rest of the text
@@ -110,13 +110,15 @@ fn command<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Content<'
         Some(text) => text,
         // when the beginning delimiter wasn't found, just return the whole string.
         // No command is in here.
-        None => return Ok((
-            "",
-            Content {
-                text: s,
-                command: None,
-            },
-        )),
+        None => {
+            return Ok((
+                "",
+                Content {
+                    text: s,
+                    command: None,
+                },
+            ))
+        }
     };
 
     let (rest, command) = opt(preceded(tag(begin), terminated(take_until(end), tag(end))))(rest)?;
@@ -129,7 +131,43 @@ mod test {
     use super::*;
 
     #[test]
-    fn full_empty() {
+    fn template1() {
+        let input = "hello (echo world)";
+        let result = template(input, &["sh"], "(", ")");
+        let expected = "hello world";
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn template2() {
+        let input = "Hey (echo VSauce), (echo Michael) here!";
+        let result = template(input, &["sh"], "(", ")");
+        let expected = "Hey VSauce, Michael here!";
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn template3() {
+        let input = "Hey { echo VSauce }, { echo Michael } here!";
+        let result = template(input, &["sh"], "{", "}");
+        let expected = "Hey VSauce, Michael here!";
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn template4() {
+        let input = "complex calculation: ^[1, 2, 3].map(x => x*x).reduce((a,b) => a+b, 0)^";
+        let result = template(input, &["node"], "^", "^");
+        let expected = "complex calculation: 14";
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn parse_empty() {
         let res = parse("", "{", "}");
 
         let content = Content {
@@ -141,7 +179,7 @@ mod test {
     }
 
     #[test]
-    fn full_single() {
+    fn parse_single() {
         let res = parse("hello", "{", "}");
 
         let content = Content {
@@ -153,7 +191,7 @@ mod test {
     }
 
     #[test]
-    fn full_command() {
+    fn parse_command() {
         let res = parse("hello {{echo USER}}!", "{{", "}}");
 
         let content = vec![
@@ -171,7 +209,7 @@ mod test {
     }
 
     #[test]
-    fn full_multi() {
+    fn parse_multi() {
         let res = parse(
             "hello {{echo USER}}! How do you {{echo FEEL}} today?",
             "{{",
