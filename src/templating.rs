@@ -1,5 +1,4 @@
-// use itertools::join;
-use std::{io::Write, process::Stdio};
+use crate::exec::execute;
 
 use nom::{
     bytes::complete::{tag, take_until},
@@ -32,35 +31,6 @@ pub fn template(input: &str, shell: &[&str], begin: &str, end: &str) -> String {
     }
 
     buffer
-}
-
-fn execute(script: &str, shell: &[&str]) -> String {
-    let mut command = std::process::Command::new(shell[0])
-        .args(&shell[1..])
-        .stdin(Stdio::piped())
-        .spawn()
-        .expect(&format!("failed to spawn process in shell {:?}", shell));
-    {
-        let stdin = command
-            .stdin
-            .as_mut()
-            .expect("failed to open stdin of command");
-        stdin
-            .write_all(script.as_bytes())
-            .expect("failed to pipe command into shell");
-    }
-
-    let output = command
-        .wait_with_output()
-        .expect("failed to aquire programm output");
-
-    let status: std::process::ExitStatus = output.status;
-    if !status.success() {
-        eprintln!("error executing command `{}` in shell {}.\nProcess terminated with exit code {}.\nProgram output:\n{}", script, shell[0], status, String::from_utf8(output.stderr).unwrap());
-        std::process::exit(1);
-    }
-
-    String::from_utf8(output.stdout).expect("programm output was not valid utf-8")
 }
 
 #[derive(PartialEq, Debug)]

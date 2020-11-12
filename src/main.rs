@@ -1,3 +1,4 @@
+mod exec;
 mod templating;
 mod util;
 use templating::template;
