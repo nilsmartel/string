@@ -24,7 +24,7 @@ enum StringCommand {
         #[structopt(default_value = " ", short)]
         separator: String,
     },
-    /// Returns the length of string
+    /// Returns the length the input string
     Length,
     /// Replace all matching words
     Replace {
