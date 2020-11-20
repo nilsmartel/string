@@ -4,6 +4,7 @@ pub fn execute(text: &str, shell: &[&str]) -> String {
     let mut command = std::process::Command::new(shell[0])
         .args(&shell[1..])
         .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
         .spawn()
         .expect(&format!("failed to spawn process in shell {:?}", shell));
 
@@ -36,7 +37,7 @@ mod test {
 
     #[test]
     fn exec1() {
-        let input = "echo hello";
+        let input = "printf hello";
         let result = execute(input, &["sh"]);
         let expected = "hello";
 

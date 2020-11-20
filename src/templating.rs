@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-pub fn template(input: &str, shell: &[&str], begin: &str, end: &str) -> String {
+pub fn template(input: &str, shell: &[&str], begin: &str, end: &str, trim: bool) -> String {
     if shell.len() == 0 {
         eprintln!("must specify a shell");
         std::process::exit(1);
@@ -26,7 +26,8 @@ pub fn template(input: &str, shell: &[&str], begin: &str, end: &str) -> String {
         buffer.push_str(c.text);
         if let Some(cmd) = c.command {
             let output = execute(cmd, shell);
-            buffer.push_str(&output);
+            let output = if trim { output.trim() } else { &output };
+            buffer.push_str(output);
         }
     }
 
@@ -103,7 +104,7 @@ mod test {
     #[test]
     fn template1() {
         let input = "hello (echo world)";
-        let result = template(input, &["sh"], "(", ")");
+        let result = template(input, &["sh"], "(", ")", true);
         let expected = "hello world";
 
         assert_eq!(expected, result);
@@ -112,7 +113,7 @@ mod test {
     #[test]
     fn template2() {
         let input = "Hey (echo VSauce), (echo Michael) here!";
-        let result = template(input, &["sh"], "(", ")");
+        let result = template(input, &["sh"], "(", ")", true);
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -121,7 +122,7 @@ mod test {
     #[test]
     fn template3() {
         let input = "Hey { echo VSauce }, { echo Michael } here!";
-        let result = template(input, &["sh"], "{", "}");
+        let result = template(input, &["sh"], "{", "}", true);
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -129,8 +130,8 @@ mod test {
 
     #[test]
     fn template4() {
-        let input = "complex calculation: ^[1, 2, 3].map(x => x*x).reduce((a,b) => a+b, 0)^";
-        let result = template(input, &["node"], "^", "^");
+        let input = "complex calculation: ^console.log(14)^";
+        let result = template(input, &["node"], "^", "^", true);
         let expected = "complex calculation: 14";
 
         assert_eq!(expected, result);
