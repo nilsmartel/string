@@ -1,4 +1,7 @@
+mod exec;
+mod templating;
 mod util;
+use templating::template;
 
 use itertools::join;
 use std::io::Write;
@@ -21,7 +24,7 @@ enum StringCommand {
         #[structopt(default_value = " ", short)]
         separator: String,
     },
-    /// Returns the length of string
+    /// Returns the length the input string
     Length,
     /// Replace all matching words
     Replace {
@@ -35,6 +38,24 @@ enum StringCommand {
         #[structopt(short)]
         /// starting at 0
         number: usize,
+    },
+    /// Useful for templating, replace sections of input with the output of a shell command or script
+    Template {
+        #[structopt(default_value = "{{", long = "begin")]
+        /// Delimiter indicating beginning of command
+        begin: String,
+
+        #[structopt(default_value = "}}", long = "end")]
+        /// Delimiter indicating end of command
+        end: String,
+
+        #[structopt(default_value = "sh", long)]
+        /// in which shell the commands should be piped
+        shell: Vec<String>,
+
+        #[structopt(long = "raw-output")]
+        /// don't trim new lines and whitespace of the start and end of output
+        raw_output: bool,
     },
 }
 
@@ -56,6 +77,18 @@ fn main() {
             println!("{}", result);
         }
         Line { number } => println!("{}", pick_line(&input, number)),
+        Template {
+            shell,
+            begin,
+            end,
+            raw_output,
+        } => {
+            let shell: Vec<&str> = shell.iter().map(|s| s.as_str()).collect();
+
+            let result = template(&input, &shell, &begin, &end, !raw_output);
+
+            println!("{}", result)
+        }
     }
 }
 
