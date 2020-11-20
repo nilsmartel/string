@@ -5,7 +5,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.1.5
+shell-string 0.2.0
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -16,12 +16,13 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    help       Prints this message or the help of the given subcommand(s)
-    length     Returns the length of string
-    line       Pick a single line by linenumber
-    replace    Replace all matching words
-    split      Split up a string by a separator and print the parts on separate lines
-    substr     Extract a part of a given string
+    help        Prints this message or the help of the given subcommand(s)
+    length      Returns the length the input string
+    line        Pick a single line by linenumber
+    replace     Replace all matching words
+    split       Split up a string by a separator and print the parts on separate lines
+    substr      Extract a part of a given string
+    template    Useful for templating, replace sections of input with the output of a shell command or script
 ```
 
 ## Installation
