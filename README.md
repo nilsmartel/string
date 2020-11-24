@@ -35,8 +35,15 @@ It's always this, period.
 
 ## Why is `shell-string` good for templating files?
 
-Because you practically have no restrictions. You have the full power of any shell command at hand, even javascript if you want.
-Basically you can write the stuff you have to substitute in any language you want. You can even use this to write your own substitution style of doing things. Most importantly, you don't have to.
+Because you practically have no restrictions.
+You need to just drop in some environment variables? Easy, just write `{{ echo $MY_VAR }}` into the template.
+Is complex logic needed? You could write `{{ console.log(crazyStuff()) }}` and you're golden. Just execute with `--shell=node`
+You want to use `haskell` in your template files? Use haskell!
+
+The `string template` command is so powerful, because it doesn't do the heavy lifting itself, like a lot of alternatives do.
+Instead it relies on using EVRYTHING, you could use in the terminal. You can specify, how a command get's interpreted, be it by `ghci`, `python` or `sh` (which is the default).
+
+Using `string template` you could even set up your very own workflow for templating files. This is especially useful in CI or when configuring a fresh system.
 
 ### How does that look?
 ```yaml
