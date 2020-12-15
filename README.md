@@ -65,7 +65,7 @@ Per default `sh` is used to interpret the command inside `{{`  and `}}` and, if 
 ### How am using a document as a template?
 
 give you have a document `deployment.template.yaml` and you want to derive a file called `deployment.yaml`, that's easy. Open a terminal and type
-```
+```sh
 cat deployment.template.yaml | string template > deployment.yaml
 ```
 
@@ -78,7 +78,7 @@ which means
 
 Given cargo is installed on your machine execute
 
-```
+```sh
 cargo install shell-string
 ```
 
@@ -88,12 +88,12 @@ To verify your installation worked type `string -v` and you _should_ see the app
 
 if you want the very latest version, check out this repository locally using
 
-```
+```sh
 git clone https://github.com/nilsmartel/string
 ```
 and build and install the code using
 
-```
+```sh
 cd string   # go into the repository
 cargo install --path . --force      # use force in case the binary is alread installed
 ```
