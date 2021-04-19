@@ -12,6 +12,7 @@ const STDOUT_WRITE_ERROR: &'static str = "failed to write to stdout";
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
+    Reverse,
     /// Extract a part of a given string.
     Substr {
         #[structopt(default_value = "0", short, long)]
@@ -39,6 +40,8 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
+    /// Output the set of input strings without repitions, in order
+    Distinct,
     /// Useful for templating, replace sections of input with the output of a shell command or script
     Template {
         #[structopt(default_value = "{{", long = "begin")]
@@ -57,6 +60,7 @@ enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
+
 }
 
 fn main() {
@@ -65,6 +69,22 @@ fn main() {
 
     use StringCommand::*;
     match config {
+        Reverse => {
+            for line in input.split("\n").collect::<Vec<_>>().iter().rev() {
+                println!("{}", line);
+            }
+        }
+        Distinct => {
+            let mut set = std::collections::BTreeSet::new();
+            for line in input.lines() {
+                if set.get(line).is_some() {
+                    continue;
+                }
+
+                set.insert(line);
+                println!("{}", line);
+            }
+        }
         Substr { start, end } => {
             println!("{}", substr(&input, start, end));
         }
