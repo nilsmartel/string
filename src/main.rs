@@ -40,8 +40,12 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
-    /// Output the set of input strings without repitions, in order
-    Distinct,
+    /// Output the set of input strings without repititions, in order
+    Distinct {
+        #[structopt(short)]
+        /// Distinct entire lines, instead of individual words
+        lines: bool,
+    },
     /// Useful for templating, replace sections of input with the output of a shell command or script
     Template {
         #[structopt(default_value = "{{", long = "begin")]
@@ -60,7 +64,6 @@ enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
-
 }
 
 fn main() {
@@ -74,9 +77,16 @@ fn main() {
                 println!("{}", line);
             }
         }
-        Distinct => {
+        Distinct { lines } => {
             let mut set = std::collections::BTreeSet::new();
-            for line in input.lines() {
+
+            let separator = if lines {
+                &['\n'][..]
+            } else {
+                &[' ', '\r', '\n', '\t'][..]
+            };
+
+            for line in input.split_terminator(separator) {
                 if set.get(line).is_some() {
                     continue;
                 }
