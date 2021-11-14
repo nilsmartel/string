@@ -104,7 +104,7 @@ fn main() {
         Length => println!("{}", input.len()),
         Replace { matching, with } => {
             let result = join(input.split(&matching), &with);
-            println!("{}", result);
+            print!("{}", result);
         }
         Line { number } => println!("{}", pick_line(&input, number)),
         Template {
