@@ -67,14 +67,19 @@ enum StringCommand {
 }
 
 fn main() {
-    let config: StringCommand = StringCommand::from_args();
+    let command: StringCommand = StringCommand::from_args();
     let input = util::stdin_as_string();
+    let mut output = std::io::stdout();
 
+    perform_command(command, input, &mut output);
+}
+
+fn perform_command(command: StringCommand, input: String, output: &mut impl std::io::Write) -> std::io::Result<()> {
     use StringCommand::*;
-    match config {
+    match command {
         Reverse => {
             for line in input.split("\n").collect::<Vec<_>>().iter().rev() {
-                println!("{}", line);
+                writeln!(output, "{}", line)?;
             }
         }
         Distinct { lines } => {
@@ -92,11 +97,11 @@ fn main() {
                 }
 
                 set.insert(line);
-                println!("{}", line);
+                writeln!(output, "{}", line)?;
             }
         }
         Substr { start, end } => {
-            println!("{}", substr(&input, start, end));
+            writeln!(output, "{}", substr(&input, start, end))?;
         }
         Split { separator } => {
             split(&input, &separator);
@@ -119,7 +124,9 @@ fn main() {
 
             println!("{}", result)
         }
-    }
+    };
+
+    Ok(())
 }
 
 fn pick_line(input: &str, number: usize) -> &str {
