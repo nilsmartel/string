@@ -104,14 +104,15 @@ fn perform_command(command: StringCommand, input: String, output: &mut impl std:
             writeln!(output, "{}", substr(&input, start, end))?;
         }
         Split { separator } => {
-            split(&input, &separator);
+            let result = join(input.split(&separator), "\n");
+            write!(output, "{}", result)?;
         }
-        Length => println!("{}", input.len()),
+        Length => writeln!(output,"{}", input.len())?,
         Replace { matching, with } => {
             let result = join(input.split(&matching), &with);
-            print!("{}", result);
+            write!(output, "{}", result)?;
         }
-        Line { number } => println!("{}", pick_line(&input, number)),
+        Line { number } => writeln!(output, "{}", pick_line(&input, number))?,
         Template {
             shell,
             begin,
@@ -122,7 +123,7 @@ fn perform_command(command: StringCommand, input: String, output: &mut impl std:
 
             let result = template(&input, &shell, &begin, &end, !raw_output);
 
-            println!("{}", result)
+            writeln!(output, "{}", result)?;
         }
     };
 
@@ -139,16 +140,6 @@ fn pick_line(input: &str, number: usize) -> &str {
     } else {
         eprintln!("input does not have enough lines");
         std::process::exit(1);
-    }
-}
-
-fn split(input: &str, separator: &str) {
-    let stdout = std::io::stdout();
-    let mut lock = stdout.lock();
-
-    for line in input.split(separator) {
-        lock.write(line.as_bytes()).expect(STDOUT_WRITE_ERROR);
-        lock.write(b"\n").expect(STDOUT_WRITE_ERROR);
     }
 }
 
