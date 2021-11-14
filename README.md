@@ -5,7 +5,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.2.3
+shell-string 0.3.1
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -16,7 +16,7 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    distinct    Output the set of input strings without repitions, in order
+    distinct    Output the set of input strings without repititions, in order
     help        Prints this message or the help of the given subcommand(s)
     length      Returns the length the input string
     line        Pick a single line by linenumber
