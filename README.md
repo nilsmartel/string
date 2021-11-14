@@ -84,7 +84,7 @@ Given cargo is installed on your machine execute
 cargo install shell-string
 ```
 
-To verify your installation worked type `string -v` and you _should_ see the appropriate version number.
+To verify your installation worked type `string --version`. Given your installation was successful you _should_ see the appropriate version number.
 
 ---
 
