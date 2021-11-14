@@ -40,7 +40,7 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
-    /// Output the set of input strings without repititions, in order
+    /// Output the set of input strings without repetitions, in order
     Distinct {
         #[structopt(short)]
         /// Distinct entire lines, instead of individual words
