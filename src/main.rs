@@ -40,7 +40,7 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
-    /// Output the set of input strings without repititions, in order
+    /// Output the set of input strings without repetitions, in order
     Distinct {
         #[structopt(short)]
         /// Distinct entire lines, instead of individual words
@@ -67,14 +67,19 @@ enum StringCommand {
 }
 
 fn main() {
-    let config: StringCommand = StringCommand::from_args();
+    let command: StringCommand = StringCommand::from_args();
     let input = util::stdin_as_string();
+    let mut output = std::io::stdout();
 
+    perform_command(command, input, &mut output);
+}
+
+fn perform_command(command: StringCommand, input: String, output: &mut impl std::io::Write) -> std::io::Result<()> {
     use StringCommand::*;
-    match config {
+    match command {
         Reverse => {
             for line in input.split("\n").collect::<Vec<_>>().iter().rev() {
-                println!("{}", line);
+                writeln!(output, "{}", line)?;
             }
         }
         Distinct { lines } => {
@@ -92,21 +97,22 @@ fn main() {
                 }
 
                 set.insert(line);
-                println!("{}", line);
+                writeln!(output, "{}", line)?;
             }
         }
         Substr { start, end } => {
-            println!("{}", substr(&input, start, end));
+            writeln!(output, "{}", substr(&input, start, end))?;
         }
         Split { separator } => {
-            split(&input, &separator);
+            let result = join(input.split(&separator), "\n");
+            write!(output, "{}", result)?;
         }
-        Length => println!("{}", input.len()),
+        Length => writeln!(output,"{}", input.len())?,
         Replace { matching, with } => {
             let result = join(input.split(&matching), &with);
-            print!("{}", result);
+            write!(output, "{}", result)?;
         }
-        Line { number } => println!("{}", pick_line(&input, number)),
+        Line { number } => writeln!(output, "{}", pick_line(&input, number))?,
         Template {
             shell,
             begin,
@@ -117,9 +123,11 @@ fn main() {
 
             let result = template(&input, &shell, &begin, &end, !raw_output);
 
-            println!("{}", result)
+            writeln!(output, "{}", result)?;
         }
-    }
+    };
+
+    Ok(())
 }
 
 fn pick_line(input: &str, number: usize) -> &str {
@@ -132,16 +140,6 @@ fn pick_line(input: &str, number: usize) -> &str {
     } else {
         eprintln!("input does not have enough lines");
         std::process::exit(1);
-    }
-}
-
-fn split(input: &str, separator: &str) {
-    let stdout = std::io::stdout();
-    let mut lock = stdout.lock();
-
-    for line in input.split(separator) {
-        lock.write(line.as_bytes()).expect(STDOUT_WRITE_ERROR);
-        lock.write(b"\n").expect(STDOUT_WRITE_ERROR);
     }
 }
 
