@@ -55,6 +55,8 @@ enum StringCommand {
         /// Distinct entire lines, instead of individual words
         lines: bool,
     },
+    /// Trim whitespace on lines and ignore empty ones
+    Trim,
     /// Useful for templating, replace sections of input with the output of a shell command or script
     Template {
         #[structopt(default_value = "{{", long = "begin")]
@@ -238,6 +240,25 @@ mod tests {
             assert_eq!(writer, expected);
         }
     }
+
+    #[test]
+    fn trim() {
+        let input = "
+        Hello
+
+            World\t
+        ";
+        let expected = "Hello\nWorld\n";
+
+        let mut writer = TestWriter::new();
+        perform_command(
+            Trim,
+            input.into(),
+            &mut writer,
+        )
+        .unwrap();
+        assert_eq!(writer, expected);
+    }
 }
 
 fn perform_command(
@@ -266,6 +287,15 @@ fn perform_command(
                 .filter(|l| !l.is_empty())
             {
                 writeln!(output, "{}", line)?;
+            }
+        }
+        Trim => {
+            for line in input
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                writeln!(output, "{}", line)?
             }
         }
         Distinct { lines } => {

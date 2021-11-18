@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.3.2
+shell-string 0.3.3
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -29,6 +29,7 @@ SUBCOMMANDS:
     split       Split up a string by a separator and print the parts on separate lines
     substr      Extract a part of a given string
     template    Useful for templating, replace sections of input with the output of a shell command or script
+    trim        Trim whitespace on lines and ignore empty ones
 ```
 
 ## Why does this exists
