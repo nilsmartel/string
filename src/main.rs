@@ -1,17 +1,16 @@
 mod exec;
 mod templating;
 mod util;
+
 use templating::template;
 
 use itertools::join;
-use std::io::Write;
 use structopt::StructOpt;
-
-const STDOUT_WRITE_ERROR: &'static str = "failed to write to stdout";
 
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
+    /// Reverse order of lines 
     Reverse,
     /// Extract a part of a given string.
     Substr {
@@ -66,19 +65,132 @@ enum StringCommand {
     },
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let command: StringCommand = StringCommand::from_args();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
-    perform_command(command, input, &mut output);
+    perform_command(command, input, &mut output)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fmt::Formatter;
+    use super::{perform_command, StringCommand::*};
+
+    struct TestWriter {
+        buffer: Vec<u8>,
+    }
+
+    impl std::fmt::Debug for TestWriter {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            let s = String::from_utf8_lossy(&self.buffer);
+
+            s.fmt(f)
+        }
+    }
+
+    impl TestWriter {
+        fn new() -> Self {
+            TestWriter { buffer: Vec::with_capacity(128) }
+        }
+    }
+
+    impl std::io::Write for TestWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.buffer.extend(buf);
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl PartialEq<&str> for TestWriter {
+        fn eq(&self, other: &&str) -> bool {
+            self.buffer == other.as_bytes()
+        }
+    }
+
+    #[test]
+    fn reverse() {
+        let cases = [
+            ("öüä", "öüä\n"),
+            ("öüä\n", "öüä\n"),
+            ("hello\nworld", "world\nhello\n"),
+            ("hello\n\nworld", "world\nhello\n"),
+            ("hello\nworld\n", "world\nhello\n"),
+            ("hello\n\nworld\n", "world\nhello\n"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(Reverse, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn distinct_words() {
+        let cases = [
+            ("hello hello hello", "hello\n"),
+            ("hello world", "hello\nworld\n"),
+            ("1 2 3 4", "1\n2\n3\n4\n"),
+            ("öüä öüä äüö äää ööö üüü", "öüä\näüö\näää\nööö\nüüü\n"),
+            ("öüä äüö äää ööö üüü", "öüä\näüö\näää\nööö\nüüü\n"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(Distinct {lines: false}, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn distinct_lines() {
+        let cases = [
+            ("hello\nhello\nhello", "hello\n"),
+            ("hello hello\nhello", "hello hello\nhello\n"),
+            ("hello\nworld", "hello\nworld\n"),
+            ("1 2 3 4", "1 2 3 4\n"),
+            ("öüä\nöüä\näüö\näää\nööö\nüüü", "öüä\näüö\näää\nööö\nüüü\n"),
+            ("öüä\näüö\näää\nööö\nüüü", "öüä\näüö\näää\nööö\nüüü\n"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(Distinct {lines: true}, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn substring() {
+        let cases = [
+            ("abcd", "cd\n"),
+            ("abc", "c\n"),
+            ("abcdefg", "cd\n"),
+            ("äbcdefg", "cd\n"),
+            ("öüä", "ä\n"),
+            ("öüäß", "äß\n"),
+            ("öüäß€", "äß\n"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(Substr {start: 2, end: 4}, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
 }
 
 fn perform_command(command: StringCommand, input: String, output: &mut impl std::io::Write) -> std::io::Result<()> {
     use StringCommand::*;
     match command {
         Reverse => {
-            for line in input.split("\n").collect::<Vec<_>>().iter().rev() {
+            for line in input.split('\n').collect::<Vec<_>>().iter().rev().filter(|l| !l.is_empty()) {
                 writeln!(output, "{}", line)?;
             }
         }
@@ -107,7 +219,7 @@ fn perform_command(command: StringCommand, input: String, output: &mut impl std:
             let result = join(input.split(&separator), "\n");
             write!(output, "{}", result)?;
         }
-        Length => writeln!(output,"{}", input.len())?,
+        Length => writeln!(output, "{}", input.len())?,
         Replace { matching, with } => {
             let result = join(input.split(&matching), &with);
             write!(output, "{}", result)?;
@@ -132,7 +244,7 @@ fn perform_command(command: StringCommand, input: String, output: &mut impl std:
 
 fn pick_line(input: &str, number: usize) -> &str {
     if let Some((_, line)) = input
-        .split("\n")
+        .split('\n')
         .enumerate()
         .find(|(index, _)| *index == number)
     {
