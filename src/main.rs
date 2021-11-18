@@ -7,9 +7,20 @@ use templating::template;
 use itertools::join;
 use structopt::StructOpt;
 
+
+#[derive(StructOpt, Debug)]
+enum CaseStyle {
+    /// lowercase
+    Lower,
+    /// UPPERCASE
+    Upper,
+}
+
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
+    /// transform upper- or lowercase
+    Case(CaseStyle),
     /// Reverse order of lines 
     Reverse,
     /// Extract a part of a given string.
@@ -76,7 +87,7 @@ fn main() -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use std::fmt::Formatter;
-    use super::{perform_command, StringCommand::*};
+    use super::{perform_command, StringCommand::*, StringCommand};
 
     struct TestWriter {
         buffer: Vec<u8>,
@@ -184,11 +195,54 @@ mod tests {
             assert_eq!(writer, expected);
         }
     }
+
+
+    #[test]
+    fn lowercase() {
+        let cases = [
+            ("abcdefg", "abcdefg"),
+            ("ABCDEFG", "abcdefg"),
+            ("AbcdEFG", "abcdefg"),
+            ("AbcdEFGöüäÖÜÄ", "abcdefgöüäöüä"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(StringCommand::Case(super::CaseStyle::Lower), input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn uppercase() {
+        let cases = [
+            ("abcdefg", "ABCDEFG"),
+            ("ABCDEFG", "ABCDEFG"),
+            ("AbcdEFG", "ABCDEFG"),
+            ("AbcdEFGöüäÖÜÄ", "ABCDEFGÖÜÄÖÜÄ"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(StringCommand::Case(super::CaseStyle::Upper), input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
 }
 
 fn perform_command(command: StringCommand, input: String, output: &mut impl std::io::Write) -> std::io::Result<()> {
     use StringCommand::*;
     match command {
+        Case(c) => match c {
+            CaseStyle::Lower => {
+                let input = input.to_lowercase();
+                write!(output, "{}", input)?;
+            }
+            CaseStyle::Upper => {
+                let input = input.to_uppercase();
+                write!(output, "{}", input)?;
+            }
+        }
         Reverse => {
             for line in input.split('\n').collect::<Vec<_>>().iter().rev().filter(|l| !l.is_empty()) {
                 writeln!(output, "{}", line)?;
