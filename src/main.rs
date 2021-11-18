@@ -19,7 +19,7 @@ enum CaseStyle {
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
-    /// transform upper- or lowercase
+    /// Transform upper- or lowercase
     Case(CaseStyle),
     /// Reverse order of lines 
     Reverse,

@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.3.1
+shell-string 0.3.2
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -19,12 +19,13 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    distinct    Output the set of input strings without repititions, in order
+    case        Transform upper- or lowercase
+    distinct    Output the set of input strings without repetitions, in order
     help        Prints this message or the help of the given subcommand(s)
     length      Returns the length the input string
     line        Pick a single line by linenumber
     replace     Replace all matching words
-    reverse
+    reverse     Reverse order of lines
     split       Split up a string by a separator and print the parts on separate lines
     substr      Extract a part of a given string
     template    Useful for templating, replace sections of input with the output of a shell command or script
