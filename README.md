@@ -1,3 +1,6 @@
+![tests passing](https://github.com/nilsmartel/string/actions/workflows/rust.yml/badge.svg?branch=main)
+
+
 # shell-string
 
 Simple CLI to perform common string operations
