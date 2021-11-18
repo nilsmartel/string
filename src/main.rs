@@ -5,14 +5,12 @@ mod util;
 use templating::template;
 
 use itertools::join;
-use std::io::Write;
 use structopt::StructOpt;
-
-const STDOUT_WRITE_ERROR: &'static str = "failed to write to stdout";
 
 #[derive(StructOpt, Debug)]
 #[structopt(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
+    /// Reverse order of lines 
     Reverse,
     /// Extract a part of a given string.
     Substr {
@@ -67,12 +65,12 @@ enum StringCommand {
     },
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let command: StringCommand = StringCommand::from_args();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
-    perform_command(command, input, &mut output);
+    perform_command(command, input, &mut output)
 }
 
 #[cfg(test)]
@@ -118,10 +116,12 @@ mod tests {
     #[test]
     fn reverse() {
         let cases = [
-            ("öüä", "äüö"),
-            ("hello", "olleh"),
-            ("world", "dlrow"),
-            ("  \n  \t", "\t  \n  "),
+            ("öüä", "öüä\n"),
+            ("öüä\n", "öüä\n"),
+            ("hello\nworld", "world\nhello\n"),
+            ("hello\n\nworld", "world\nhello\n"),
+            ("hello\nworld\n", "world\nhello\n"),
+            ("hello\n\nworld\n", "world\nhello\n"),
         ];
 
         for (input, expected) in cases {
@@ -165,13 +165,32 @@ mod tests {
             assert_eq!(writer, expected);
         }
     }
+
+    #[test]
+    fn substring() {
+        let cases = [
+            ("abcd", "cd\n"),
+            ("abc", "c\n"),
+            ("abcdefg", "cd\n"),
+            ("äbcdefg", "cd\n"),
+            ("öüä", "ä\n"),
+            ("öüäß", "äß\n"),
+            ("öüäß€", "äß\n"),
+        ];
+
+        for (input, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(Substr {start: 2, end: 4}, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
 }
 
 fn perform_command(command: StringCommand, input: String, output: &mut impl std::io::Write) -> std::io::Result<()> {
     use StringCommand::*;
     match command {
         Reverse => {
-            for line in input.split("\n").collect::<Vec<_>>().iter().rev() {
+            for line in input.split('\n').collect::<Vec<_>>().iter().rev().filter(|l| !l.is_empty()) {
                 writeln!(output, "{}", line)?;
             }
         }
@@ -225,7 +244,7 @@ fn perform_command(command: StringCommand, input: String, output: &mut impl std:
 
 fn pick_line(input: &str, number: usize) -> &str {
     if let Some((_, line)) = input
-        .split("\n")
+        .split('\n')
         .enumerate()
         .find(|(index, _)| *index == number)
     {
