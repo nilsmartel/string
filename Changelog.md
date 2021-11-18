@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.3.2
+    - implement `case` subcommand for lowercase and uppercase transformations
+    - implement proper testing
 - 0.3.1
     - `replace` command no longer prints trailing new line
     - start cultivating changelog
