@@ -1,6 +1,5 @@
 .git
 .gitignore
+.github
 target
-test.sh
-tests
 README.md
