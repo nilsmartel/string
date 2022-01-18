@@ -57,6 +57,8 @@ enum StringCommand {
     },
     /// Trim whitespace on lines and ignore empty ones
     Trim,
+    /// Prints all chars on separate lines
+    Chars,
     /// Useful for templating, replace sections of input with the output of a shell command or script
     Template {
         #[structopt(default_value = "{{", long = "begin")]
@@ -251,12 +253,7 @@ mod tests {
         let expected = "Hello\nWorld\n";
 
         let mut writer = TestWriter::new();
-        perform_command(
-            Trim,
-            input.into(),
-            &mut writer,
-        )
-        .unwrap();
+        perform_command(Trim, input.into(), &mut writer).unwrap();
         assert_eq!(writer, expected);
     }
 }
@@ -340,6 +337,11 @@ fn perform_command(
             let result = template(&input, &shell, &begin, &end, !raw_output);
 
             writeln!(output, "{}", result)?;
+        }
+        Chars => {
+            for c in input.chars() {
+                writeln!(output, "{}", c)?;
+            }
         }
     };
 
