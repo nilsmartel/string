@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.3.3
+shell-string 0.3.4
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -20,6 +20,7 @@ FLAGS:
 
 SUBCOMMANDS:
     case        Transform upper- or lowercase
+    chars       Prints all chars on separate lines
     distinct    Output the set of input strings without repetitions, in order
     help        Prints this message or the help of the given subcommand(s)
     length      Returns the length the input string
@@ -30,6 +31,7 @@ SUBCOMMANDS:
     substr      Extract a part of a given string
     template    Useful for templating, replace sections of input with the output of a shell command or script
     trim        Trim whitespace on lines and ignore empty ones
+
 ```
 
 ## Why does this exists
