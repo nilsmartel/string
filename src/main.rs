@@ -7,6 +7,8 @@ use templating::template;
 use itertools::join;
 use structopt::StructOpt;
 
+use crate::exec::execute;
+
 #[derive(StructOpt, Debug)]
 enum CaseStyle {
     /// lowercase
@@ -76,6 +78,11 @@ enum StringCommand {
         #[structopt(long = "raw-output")]
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
+    },
+    /// Maps each line of input to a given command
+    Map {
+        #[structopt(long)]
+        command: Vec<String>,
     },
 }
 
@@ -341,6 +348,14 @@ fn perform_command(
         Chars => {
             for c in input.chars() {
                 writeln!(output, "{}", c)?;
+            }
+        }
+        Map { command } => {
+            let shell: Vec<&str> = command.iter().map(|s| s.as_str()).collect();
+
+            for line in input.lines() {
+                let result = execute(line, &shell);
+                writeln!(output, "{}", result)?;
             }
         }
     };

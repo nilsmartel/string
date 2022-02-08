@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.3.4
+shell-string 0.3.5
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -25,6 +25,7 @@ SUBCOMMANDS:
     help        Prints this message or the help of the given subcommand(s)
     length      Returns the length the input string
     line        Pick a single line by linenumber
+    map         Maps each line of input to a given command
     replace     Replace all matching words
     reverse     Reverse order of lines
     split       Split up a string by a separator and print the parts on separate lines
