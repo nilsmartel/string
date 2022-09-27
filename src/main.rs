@@ -51,6 +51,12 @@ enum StringCommand {
         /// starting at 0
         number: usize,
     },
+    /// Interleave input and only print every nth line
+    Interleave {
+        #[structopt()]
+        /// starting at 0
+        n: usize,
+    },
     /// Output the set of input strings without repetitions, in order
     Distinct {
         #[structopt(short)]
@@ -300,6 +306,13 @@ fn perform_command(
                 .filter(|line| !line.is_empty())
             {
                 writeln!(output, "{}", line)?
+            }
+        }
+        Interleave { n } => {
+            for (i, line) in input.lines().enumerate() {
+                if i % n == 0 {
+                    writeln!(output, "{}", line)?
+                }
             }
         }
         Distinct { lines } => {
