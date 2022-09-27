@@ -1,5 +1,7 @@
 # Changelog
 
+- 0.3.6
+    - implement `interleave` subcommand
 - 0.3.3
     - implement `trim` subcommand
 - 0.3.2
