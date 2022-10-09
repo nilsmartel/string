@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.3.6
+shell-string 0.4.0
 Cli for common string operations. Takes input from stdin.
 
 USAGE:

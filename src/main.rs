@@ -26,28 +26,28 @@ enum StringCommand {
     Reverse,
     /// Extract a part of a given string.
     Substr {
-        #[structopt(default_value = "0", short, long)]
+        #[structopt()]
         start: usize,
-        #[structopt(short, long)]
+        #[structopt()]
         end: usize,
     },
     /// Split up a string by a separator and print the parts on separate lines
     Split {
-        #[structopt(default_value = " ", short)]
+        #[structopt(default_value = " ")]
         separator: String,
     },
     /// Returns the length the input string
     Length,
     /// Replace all matching words
     Replace {
-        #[structopt(short, long = "match")]
+        #[structopt()]
         matching: String,
-        #[structopt(short, long)]
+        #[structopt()]
         with: String,
     },
     /// Pick a single line by linenumber
     Line {
-        #[structopt(short)]
+        #[structopt()]
         /// starting at 0
         number: usize,
     },
@@ -87,7 +87,7 @@ enum StringCommand {
     },
     /// Maps each line of input to a given command
     Map {
-        #[structopt(long)]
+        #[structopt()]
         command: Vec<String>,
     },
 }
