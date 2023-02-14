@@ -48,8 +48,8 @@ It's always this, period.
 
 Because you practically have no restrictions.
 You need to just drop in some environment variables? Easy, just write `{{ echo $MY_VAR }}` into the template.
-Is complex logic needed? You could write `{{ console.log(crazyStuff()) }}` and you're golden. Just execute with `--shell=node`
-You want to use `haskell` in your template files? Use haskell!
+Is complex logic needed? You could write `{{ console.log(crazyStuff()) }}` and you're golden. Just execute with `--shell=node`.
+You want to use `haskell` in your template files? Use `--shell=ghci`!
 
 The `string template` command is so powerful, because it doesn't do the heavy lifting itself, like a lot of alternatives do.
 Instead it relies on using EVRYTHING, you could use in the terminal. You can specify, how a command get's interpreted, be it by `ghci`, `python` or `sh` (which is the default).
