@@ -31,6 +31,33 @@ pub fn execute(text: &str, shell: &[&str]) -> String {
     String::from_utf8(output.stdout).expect("programm output was not valid utf-8")
 }
 
+pub fn execute_command(command: &[String]) -> String {
+    let cmd = std::process::Command::new(&command[0])
+        .args(&command[1..])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect(&format!("failed to spawn process in shell {:?}", &command));
+
+    let output = cmd
+        .wait_with_output()
+        .expect("failed to aquire programm output");
+
+    let status: std::process::ExitStatus = output.status;
+    if !status.success() {
+        eprintln!(
+            "error executing command `{:?
+            }`.\nProcess terminated with exit code {}.\nProgram output:\n{}",
+            command,
+            status,
+            String::from_utf8(output.stderr).unwrap()
+        );
+        std::process::exit(1);
+    }
+
+    String::from_utf8(output.stdout).expect("programm output was not valid utf-8")
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
