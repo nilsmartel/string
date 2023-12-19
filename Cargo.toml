@@ -1,6 +1,6 @@
 [package]
 name = "shell-string"
-version = "0.4.1"
+version = "0.4.2"
 description = "Obvious CLI for basic string manipulation"
 license = "Unlicense OR MIT"
 # homepage = "https://github.com/nilsmartel/string"

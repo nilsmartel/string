@@ -94,7 +94,7 @@ enum StringCommand {
     /// Applies a command to each line of input.
     /// Lines won't get applied as stdin to the command,
     /// instead the command may contain the token "__var", which will get substituted with the individual lines.
-    ForEach {
+    Foreach {
         #[structopt()]
         command: Vec<String>,
     },
@@ -379,7 +379,7 @@ fn perform_command(
                 writeln!(output, "{}", result)?;
             }
         }
-        ForEach { command } => {
+        Foreach { command } => {
             for line in input.lines() {
                 let command: Vec<_> = command.iter().map(|s| s.replace("__var", line)).collect();
 

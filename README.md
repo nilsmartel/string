@@ -8,7 +8,7 @@ Simple CLI to perform common string operations
 ## Usage
 
 ```
-shell-string 0.4.0
+shell-string 0.4.2
 Cli for common string operations. Takes input from stdin.
 
 USAGE:
@@ -22,18 +22,19 @@ SUBCOMMANDS:
     case          Transform upper- or lowercase
     chars         Prints all chars on separate lines
     distinct      Output the set of input strings without repetitions, in order
+    foreach       Applies a command to each line of input. Lines won't get applied as stdin to the command, instead
+                  the command may contain the token "__var", which will get substituted with the individual lines
     help          Prints this message or the help of the given subcommand(s)
     interleave    Interleave input and only print every nth line
     length        Returns the length the input string
     line          Pick a single line by linenumber
-    map           Maps each line of input to a given command
+    map           Maps each line of input to a given command. The input will be supplied as stdin of the command
     replace       Replace all matching words
     reverse       Reverse order of lines
     split         Split up a string by a separator and print the parts on separate lines
     substr        Extract a part of a given string
     template      Useful for templating, replace sections of input with the output of a shell command or script
     trim          Trim whitespace on lines and ignore empty ones
-
 ```
 
 ## Why does this exists
