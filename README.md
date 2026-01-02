@@ -57,7 +57,7 @@ Instead it relies on using EVRYTHING, you could use in the terminal. You can spe
 
 Using `string template` you could even set up your very own workflow for templating files. This is especially useful in CI or when configuring a fresh system.
 
-### How does that look?
+### Example
 ```yaml
 kind: Deployment
 metadata:
