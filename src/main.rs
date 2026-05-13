@@ -99,6 +99,17 @@ enum StringCommand {
         #[arg()]
         command: Vec<String>,
     },
+
+    Each {
+        /// If set, input will be passed as stdin
+        #[arg(short = 's', long = "stdin", default_value_t = false)]
+        stdin: bool,
+        /// Name of value to be replaced. Default is ""
+        #[arg(short = 'v', long = "var", default_value = "{}")]
+        var: String,
+        /// Command to be executed. Pass "string each -- <commands...>" so you can pass flags to the command.
+        command: Vec<String>,
+    },
 }
 
 fn main() -> std::io::Result<()> {
@@ -372,20 +383,16 @@ fn perform_command(
                 writeln!(output, "{}", c)?;
             }
         }
-        Map { command } => {
-            let shell: Vec<&str> = command.iter().map(|s| s.as_str()).collect();
-
+        Each { stdin, var, ref command } => {
             for line in input.lines() {
-                let result = execute(line, &shell);
-                writeln!(output, "{}", result)?;
-            }
-        }
-        Foreach { command } => {
-            for line in input.lines() {
-                let command: Vec<_> = command.iter().map(|s| s.replace("__var", line)).collect();
-
-                let result = execute_command(&command);
-                writeln!(output, "{result}")?;
+                let command: Vec<_> = command.iter().map(|s| s.replace(&var, line)).collect();
+                if stdin {
+                    let result = execute(line, &command);
+                    writeln!(output, "{}", result)?;
+                } else {
+                    let result = execute_command(&command);
+                    writeln!(output, "{result}")?;
+                }
             }
         }
     };

@@ -1,7 +1,7 @@
 use std::{io::Write, process::Stdio};
 
-pub fn execute(text: &str, shell: &[&str]) -> String {
-    let mut command = std::process::Command::new(shell[0])
+pub fn execute(text: &str, shell: &[String]) -> String {
+    let mut command = std::process::Command::new(&shell[0])
         .args(&shell[1..])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
