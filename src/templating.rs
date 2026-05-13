@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-pub fn template(input: &str, shell: &[&str], begin: &str, end: &str, trim: bool) -> String {
+pub fn template(input: &str, shell: &[String], begin: &str, end: &str, trim: bool) -> String {
     if shell.len() == 0 {
         eprintln!("must specify a shell");
         std::process::exit(1);

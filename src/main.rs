@@ -372,8 +372,6 @@ fn perform_command(
             end,
             raw_output,
         } => {
-            let shell: Vec<&str> = shell.iter().map(|s| s.as_str()).collect();
-
             let result = template(&input, &shell, &begin, &end, !raw_output);
 
             writeln!(output, "{}", result)?;
