@@ -25,7 +25,7 @@ enum StringCommand {
     Case(CaseStyle),
     /// Reverse order of lines
     Reverse,
-    /// Extract a part of a given string.
+    /// Extract part of a given string.
     Substr {
         #[arg()]
         start: usize,
@@ -39,7 +39,7 @@ enum StringCommand {
     },
     /// Returns the length the input string
     Length,
-    /// Replace all matching words
+    /// Replace all matching characters
     Replace {
         #[arg()]
         matching: String,
@@ -86,6 +86,7 @@ enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
+    /// Map each line of input to a subcommand.
     Each {
         /// If set, input will be passed as stdin
         #[arg(short = 's', long = "stdin", default_value_t = false)]
