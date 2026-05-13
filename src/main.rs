@@ -86,20 +86,6 @@ enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
-    /// Maps each line of input to a given command.
-    /// The input will be supplied as stdin of the command.
-    Map {
-        #[arg()]
-        command: Vec<String>,
-    },
-    /// Applies a command to each line of input.
-    /// Lines won't get applied as stdin to the command,
-    /// instead the command may contain the token "__var", which will get substituted with the individual lines.
-    Foreach {
-        #[arg()]
-        command: Vec<String>,
-    },
-
     Each {
         /// If set, input will be passed as stdin
         #[arg(short = 's', long = "stdin", default_value_t = false)]
