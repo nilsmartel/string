@@ -4,8 +4,8 @@ mod util;
 
 use templating::template;
 
+use clap::{Parser, Subcommand};
 use itertools::join;
-use clap::{Subcommand, Parser};
 
 use crate::exec::{execute, execute_command};
 
@@ -367,7 +367,11 @@ fn perform_command(
                 writeln!(output, "{}", c)?;
             }
         }
-        Each { stdin, var, ref command } => {
+        Each {
+            stdin,
+            var,
+            ref command,
+        } => {
             for line in input.lines() {
                 let command: Vec<_> = command.iter().map(|s| s.replace(&var, line)).collect();
                 if stdin {
