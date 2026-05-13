@@ -5,12 +5,11 @@ mod util;
 use templating::template;
 
 use itertools::join;
-use structopt::StructOpt;
-use clap::Parser;
+use clap::{Subcommand, Parser};
 
 use crate::exec::{execute, execute_command};
 
-#[derive(Parser, Debug)]
+#[derive(Subcommand, Debug)]
 enum CaseStyle {
     /// lowercase
     Lower,
@@ -19,9 +18,10 @@ enum CaseStyle {
 }
 
 #[derive(Parser, Debug)]
-#[arg(about = "Cli for common string operations. Takes input from stdin.")]
+#[command(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
     /// Transform upper- or lowercase
+    #[command(subcommand)]
     Case(CaseStyle),
     /// Reverse order of lines
     Reverse,
