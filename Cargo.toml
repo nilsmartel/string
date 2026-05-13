@@ -24,3 +24,4 @@ name = "string"
 structopt = "0.3.14"               # Parse command line argument by defining a struct.
 itertools = "0.9.0"          # Extra iterator adaptors, iterator methods, free functions, and macros.
 nom = "7.1.3"
+clap = { version = "4.6.1", features = ["derive"] }
