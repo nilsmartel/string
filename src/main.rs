@@ -46,7 +46,7 @@ enum StringCommand {
         #[arg()]
         with: String,
     },
-    /// Pick a single line by linenumber
+    /// Pick a single line by index
     Line {
         #[arg()]
         /// starting at 0
