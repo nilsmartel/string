@@ -5,12 +5,13 @@ mod util;
 
 use templating::template;
 
+use clap::Parser;
 use itertools::join;
 
-use crate::exec::{execute, execute_command};
+use crate::exec::execute;
 
 fn main() -> std::io::Result<()> {
-    let command: cli::StringCommand = StringCommand::parse();
+    let command: cli::StringCommand = cli::StringCommand::parse();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
@@ -143,7 +144,7 @@ mod tests {
         for (input, expected) in cases {
             let mut writer = TestWriter::new();
             perform_command(
-                StringCommand::Case(super::CaseStyle::Lower),
+                StringCommand::Case(super::cli::CaseStyle::Lower),
                 input.into(),
                 &mut writer,
             )
@@ -164,7 +165,7 @@ mod tests {
         for (input, expected) in cases {
             let mut writer = TestWriter::new();
             perform_command(
-                StringCommand::Case(super::CaseStyle::Upper),
+                StringCommand::Case(super::cli::CaseStyle::Upper),
                 input.into(),
                 &mut writer,
             )
@@ -189,11 +190,12 @@ mod tests {
 }
 
 fn perform_command(
-    command: StringCommand,
+    command: cli::StringCommand,
     input: String,
     output: &mut impl std::io::Write,
 ) -> std::io::Result<()> {
-    use StringCommand::*;
+    use cli::CaseStyle;
+    use cli::StringCommand::*;
     match command {
         Case(c) => match c {
             CaseStyle::Lower => {
@@ -285,13 +287,10 @@ fn perform_command(
         } => {
             for line in input.lines() {
                 let command: Vec<_> = command.iter().map(|s| s.replace(&var, line)).collect();
-                if stdin {
-                    let result = execute(line, &command);
-                    writeln!(output, "{}", result)?;
-                } else {
-                    let result = execute_command(&command);
-                    writeln!(output, "{result}")?;
-                }
+                let input = if stdin { Some(line) } else { None };
+
+                let result = execute(&command, input);
+                writeln!(output, "{}", result)?;
             }
         }
     };

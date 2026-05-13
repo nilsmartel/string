@@ -25,7 +25,7 @@ pub fn template(input: &str, shell: &[String], begin: &str, end: &str, trim: boo
     for c in ast {
         buffer.push_str(c.text);
         if let Some(cmd) = c.command {
-            let output = execute(cmd, shell);
+            let output = execute(shell, Some(cmd));
             let output = if trim { output.trim() } else { &output };
             buffer.push_str(output);
         }
