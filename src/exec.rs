@@ -65,7 +65,7 @@ mod test {
     #[test]
     fn exec1() {
         let input = "printf hello";
-        let result = execute(input, &["sh"]);
+        let result = execute(input, &[String::from("sh")]);
         let expected = "hello";
 
         assert_eq!(expected, result);

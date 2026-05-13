@@ -104,7 +104,7 @@ mod test {
     #[test]
     fn template1() {
         let input = "hello (echo world)";
-        let result = template(input, &["sh"], "(", ")", true);
+        let result = template(input, &["sh".to_string()], "(", ")", true);
         let expected = "hello world";
 
         assert_eq!(expected, result);
@@ -113,7 +113,7 @@ mod test {
     #[test]
     fn template2() {
         let input = "Hey (echo VSauce), (echo Michael) here!";
-        let result = template(input, &["sh"], "(", ")", true);
+        let result = template(input, &["sh".to_string()], "(", ")", true);
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -122,7 +122,7 @@ mod test {
     #[test]
     fn template3() {
         let input = "Hey { echo VSauce }, { echo Michael } here!";
-        let result = template(input, &["sh"], "{", "}", true);
+        let result = template(input, &["sh".to_string()], "{", "}", true);
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -131,7 +131,7 @@ mod test {
     #[test]
     fn template4() {
         let input = "complex calculation: ^console.log(14)^";
-        let result = template(input, &["node"], "^", "^", true);
+        let result = template(input, &["node".to_string()], "^", "^", true);
         let expected = "complex calculation: 14";
 
         assert_eq!(expected, result);
