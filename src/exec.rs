@@ -1,6 +1,6 @@
 use std::{io::Write, process::Stdio};
 
-pub fn execute(text: &str, shell: &[String]) -> String {
+pub fn execute(stdin_text: &str, shell: &[String]) -> String {
     let mut command = std::process::Command::new(&shell[0])
         .args(&shell[1..])
         .stdin(Stdio::piped())
@@ -14,7 +14,7 @@ pub fn execute(text: &str, shell: &[String]) -> String {
             .as_mut()
             .expect("failed to open stdin of command");
         stdin
-            .write_all(text.as_bytes())
+            .write_all(stdin_text.as_bytes())
             .expect("failed to pipe command into shell");
     }
 
