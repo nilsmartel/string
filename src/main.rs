@@ -6,10 +6,11 @@ use templating::template;
 
 use itertools::join;
 use structopt::StructOpt;
+use clap::Parser;
 
 use crate::exec::{execute, execute_command};
 
-#[derive(StructOpt, Debug)]
+#[derive(Parser, Debug)]
 enum CaseStyle {
     /// lowercase
     Lower,
@@ -17,8 +18,8 @@ enum CaseStyle {
     Upper,
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(about = "Cli for common string operations. Takes input from stdin.")]
+#[derive(Parser, Debug)]
+#[arg(about = "Cli for common string operations. Takes input from stdin.")]
 enum StringCommand {
     /// Transform upper- or lowercase
     Case(CaseStyle),
@@ -26,40 +27,40 @@ enum StringCommand {
     Reverse,
     /// Extract a part of a given string.
     Substr {
-        #[structopt()]
+        #[arg()]
         start: usize,
-        #[structopt()]
+        #[arg()]
         end: usize,
     },
     /// Split up a string by a separator and print the parts on separate lines
     Split {
-        #[structopt(default_value = " ")]
+        #[arg(default_value = " ")]
         separator: String,
     },
     /// Returns the length the input string
     Length,
     /// Replace all matching words
     Replace {
-        #[structopt()]
+        #[arg()]
         matching: String,
-        #[structopt()]
+        #[arg()]
         with: String,
     },
     /// Pick a single line by linenumber
     Line {
-        #[structopt()]
+        #[arg()]
         /// starting at 0
         number: usize,
     },
     /// Interleave input and only print every nth line
     Interleave {
-        #[structopt()]
+        #[arg()]
         /// starting at 0
         n: usize,
     },
     /// Output the set of input strings without repetitions, in order
     Distinct {
-        #[structopt(short)]
+        #[arg(short)]
         /// Distinct entire lines, instead of individual words
         lines: bool,
     },
@@ -69,39 +70,39 @@ enum StringCommand {
     Chars,
     /// Useful for templating, replace sections of input with the output of a shell command or script
     Template {
-        #[structopt(default_value = "{{", long = "begin")]
+        #[arg(default_value = "{{", long = "begin")]
         /// Delimiter indicating beginning of command
         begin: String,
 
-        #[structopt(default_value = "}}", long = "end")]
+        #[arg(default_value = "}}", long = "end")]
         /// Delimiter indicating end of command
         end: String,
 
-        #[structopt(default_value = "sh", long)]
+        #[arg(default_value = "sh", long)]
         /// in which shell the commands should be piped
         shell: Vec<String>,
 
-        #[structopt(long = "raw-output")]
+        #[arg(long = "raw-output")]
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
     /// Maps each line of input to a given command.
     /// The input will be supplied as stdin of the command.
     Map {
-        #[structopt()]
+        #[arg()]
         command: Vec<String>,
     },
     /// Applies a command to each line of input.
     /// Lines won't get applied as stdin to the command,
     /// instead the command may contain the token "__var", which will get substituted with the individual lines.
     Foreach {
-        #[structopt()]
+        #[arg()]
         command: Vec<String>,
     },
 }
 
 fn main() -> std::io::Result<()> {
-    let command: StringCommand = StringCommand::from_args();
+    let command: StringCommand = StringCommand::parse();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
