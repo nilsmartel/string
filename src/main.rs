@@ -8,14 +8,19 @@ use templating::template;
 use clap::Parser;
 use itertools::join;
 
+use anyhow::bail;
 use crate::exec::execute;
 
-fn main() -> std::io::Result<()> {
+fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
-    perform_command(command, input, &mut output)
+    let result = perform_command(command, input, &mut output);
+
+    if result.is_err() {
+        std::process::exit(1);
+    }
 }
 
 #[cfg(test)]
@@ -205,8 +210,8 @@ mod tests {
             ("hello\nworld\n", "world"),
         ] {
             let mut writer = TestWriter::new();
-            perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer).unwrap();
-            assert_eq!(writer, "");
+            let res = perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer);
+            assert!(res.is_ok());
         }
     }
 
@@ -214,8 +219,8 @@ mod tests {
     fn predicate_starts_with() {
         for (input, prefix) in [("hello world", "hello"), ("hello\nworld\n", "hello")] {
             let mut writer = TestWriter::new();
-            perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer).unwrap();
-            assert_eq!(writer, "");
+            let res = perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer);
+            assert!(res.is_ok());
         }
     }
 
@@ -223,8 +228,40 @@ mod tests {
     fn predicate_ends_with() {
         for (input, suffix) in [("hello world", "world"), ("hello world\n", "world")] {
             let mut writer = TestWriter::new();
-            perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer).unwrap();
-            assert_eq!(writer, "");
+            let res = perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer);
+            assert!(res.is_ok());
+        }
+    }
+
+    #[test]
+    fn predicate_contains_not() {
+        for (input, pattern) in [
+            ("hello world", "worldk"),
+            ("hello world", "helloj"),
+            ("hello\nworld", "worlds"),
+            ("hello\nworld\n", "worlds"),
+        ] {
+            let mut writer = TestWriter::new();
+            let res = perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer);
+            assert!(res.is_err());
+        }
+    }
+
+    #[test]
+    fn predicate_starts_with_not() {
+        for (input, prefix) in [("hello world", "ello"), ("ello\nworld\n", "hello")] {
+            let mut writer = TestWriter::new();
+            let res = perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer);
+            assert!(res.is_err());
+        }
+    }
+
+    #[test]
+    fn predicate_ends_with_not() {
+        for (input, suffix) in [("hello world", "worl"), ("hello world\n", "worl")] {
+            let mut writer = TestWriter::new();
+            let res = perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer);
+            assert!(res.is_err());
         }
     }
 
@@ -247,7 +284,7 @@ fn perform_command(
     command: cli::StringCommand,
     input: String,
     output: &mut impl std::io::Write,
-) -> std::io::Result<()> {
+) -> anyhow::Result<()> {
     use cli::CaseStyle;
     use cli::StringCommand::*;
     match command {
@@ -278,13 +315,13 @@ fn perform_command(
                 .map(|line| line.trim())
                 .filter(|line| !line.is_empty())
             {
-                writeln!(output, "{}", line)?
+                writeln!(output, "{}", line)?;
             }
         }
         Interleave { n } => {
             for (i, line) in input.lines().enumerate() {
                 if i % n == 0 {
-                    writeln!(output, "{}", line)?
+                    writeln!(output, "{}", line)?;
                 }
             }
         }
@@ -320,17 +357,17 @@ fn perform_command(
         }
         Contains { pattern } => {
             if !input.trim_end_matches('\n').contains(&*pattern) {
-                std::process::exit(1);
+                bail!("no match");
             }
         }
         StartsWith { prefix } => {
             if !input.trim_end_matches('\n').starts_with(&*prefix) {
-                std::process::exit(1);
+                bail!("no match");
             }
         }
         EndsWith { suffix } => {
             if !input.trim_end_matches('\n').ends_with(&*suffix) {
-                std::process::exit(1);
+                bail!("no match");
             }
         }
         Length => writeln!(output, "{}", input.len())?,
@@ -346,7 +383,6 @@ fn perform_command(
             raw_output,
         } => {
             let result = template(&input, &shell, &begin, &end, !raw_output);
-
             writeln!(output, "{}", result)?;
         }
         Chars => {
