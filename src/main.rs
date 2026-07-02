@@ -256,8 +256,10 @@ fn perform_command(
             writeln!(output, "{}", substr(&input, start, end))?;
         }
         Split { separator } => {
-            let result = join(input.split(&separator), "\n");
-            write!(output, "{}", result)?;
+            for line in input.split(&separator) {
+                writeln!(output, "{}", line)?;
+            }
+        }
         }
         Length => writeln!(output, "{}", input.len())?,
         Replace { matching, with } => {
