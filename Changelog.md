@@ -2,6 +2,7 @@
 
 - 0.5.1
     - implement `join` subcommand — joins lines with a configurable separator (inverse of `split`)
+    - implement `contains`, `starts-with`, `ends-with` subcommands that exits 0/1, useful in shell if conditions. The absence means users reach for grep -q instead.
 - 0.5.0
     - Merge `map` and `foreach` into simplified `each` command
     - improve documentation

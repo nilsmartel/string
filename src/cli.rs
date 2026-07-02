@@ -33,6 +33,21 @@ pub enum StringCommand {
         #[arg(default_value = " ")]
         separator: String,
     },
+    /// Exit 0 if input contains the given string, else exit 1
+    Contains {
+        #[arg()]
+        pattern: String,
+    },
+    /// Exit 0 if input starts with the given prefix, else exit 1
+    StartsWith {
+        #[arg()]
+        prefix: String,
+    },
+    /// Exit 0 if input ends with the given suffix, else exit 1
+    EndsWith {
+        #[arg()]
+        suffix: String,
+    },
     /// Returns the length the input string
     Length,
     /// Replace all matching characters

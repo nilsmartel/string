@@ -197,6 +197,38 @@ mod tests {
     }
 
     #[test]
+    fn predicate_contains() {
+        for (input, pattern) in [
+            ("hello world", "world"),
+            ("hello world", "hello"),
+            ("hello\nworld", "world"),
+            ("hello\nworld\n", "world"),
+        ] {
+            let mut writer = TestWriter::new();
+            perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, "");
+        }
+    }
+
+    #[test]
+    fn predicate_starts_with() {
+        for (input, prefix) in [("hello world", "hello"), ("hello\nworld\n", "hello")] {
+            let mut writer = TestWriter::new();
+            perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, "");
+        }
+    }
+
+    #[test]
+    fn predicate_ends_with() {
+        for (input, suffix) in [("hello world", "world"), ("hello world\n", "world")] {
+            let mut writer = TestWriter::new();
+            perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer).unwrap();
+            assert_eq!(writer, "");
+        }
+    }
+
+    #[test]
     fn trim() {
         let input = "
         Hello
@@ -285,6 +317,21 @@ fn perform_command(
         Join { separator } => {
             let result = join(input.lines(), &separator);
             writeln!(output, "{}", result)?;
+        }
+        Contains { pattern } => {
+            if !input.trim_end_matches('\n').contains(&*pattern) {
+                std::process::exit(1);
+            }
+        }
+        StartsWith { prefix } => {
+            if !input.trim_end_matches('\n').starts_with(&*prefix) {
+                std::process::exit(1);
+            }
+        }
+        EndsWith { suffix } => {
+            if !input.trim_end_matches('\n').ends_with(&*suffix) {
+                std::process::exit(1);
+            }
         }
         Length => writeln!(output, "{}", input.len())?,
         Replace { matching, with } => {
