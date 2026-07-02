@@ -8,8 +8,8 @@ use templating::template;
 use clap::Parser;
 use itertools::join;
 
-use anyhow::bail;
 use crate::exec::execute;
+use anyhow::bail;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
@@ -210,7 +210,13 @@ mod tests {
             ("hello\nworld\n", "world"),
         ] {
             let mut writer = TestWriter::new();
-            let res = perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                Contains {
+                    pattern: pattern.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_ok());
         }
     }
@@ -219,7 +225,13 @@ mod tests {
     fn predicate_starts_with() {
         for (input, prefix) in [("hello world", "hello"), ("hello\nworld\n", "hello")] {
             let mut writer = TestWriter::new();
-            let res = perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                StartsWith {
+                    prefix: prefix.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_ok());
         }
     }
@@ -228,7 +240,13 @@ mod tests {
     fn predicate_ends_with() {
         for (input, suffix) in [("hello world", "world"), ("hello world\n", "world")] {
             let mut writer = TestWriter::new();
-            let res = perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                EndsWith {
+                    suffix: suffix.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_ok());
         }
     }
@@ -242,7 +260,13 @@ mod tests {
             ("hello\nworld\n", "worlds"),
         ] {
             let mut writer = TestWriter::new();
-            let res = perform_command(Contains { pattern: pattern.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                Contains {
+                    pattern: pattern.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_err());
         }
     }
@@ -251,7 +275,13 @@ mod tests {
     fn predicate_starts_with_not() {
         for (input, prefix) in [("hello world", "ello"), ("ello\nworld\n", "hello")] {
             let mut writer = TestWriter::new();
-            let res = perform_command(StartsWith { prefix: prefix.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                StartsWith {
+                    prefix: prefix.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_err());
         }
     }
@@ -260,7 +290,13 @@ mod tests {
     fn predicate_ends_with_not() {
         for (input, suffix) in [("hello world", "worl"), ("hello world\n", "worl")] {
             let mut writer = TestWriter::new();
-            let res = perform_command(EndsWith { suffix: suffix.into() }, input.into(), &mut writer);
+            let res = perform_command(
+                EndsWith {
+                    suffix: suffix.into(),
+                },
+                input.into(),
+                &mut writer,
+            );
             assert!(res.is_err());
         }
     }
@@ -400,7 +436,11 @@ fn perform_command(
                 let input = if stdin { Some(line) } else { None };
 
                 let result = execute(&command, input);
-                writeln!(output, "{}", result)?;
+                if result.ends_with("\n") {
+                    write!(output, "{}", result)?;
+                } else {
+                    writeln!(output, "{}", result)?;
+                }
             }
         }
     };
