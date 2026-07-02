@@ -1,5 +1,10 @@
 # Changelog
 
+- 0.5.1
+    - implement `join` subcommand — joins lines with a configurable separator (inverse of `split`)
+- 0.5.0
+    - Merge `map` and `foreach` into simplified `each` command
+    - improve documentation
 - 0.4.1
     - implement `foreach` subcommand
 - 0.3.6
