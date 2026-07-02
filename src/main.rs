@@ -175,6 +175,28 @@ mod tests {
     }
 
     #[test]
+    fn join_lines() {
+        let cases = [
+            ("hello\nworld", " ", "hello world\n"),
+            ("a\nb\nc", ",", "a,b,c\n"),
+            ("single", "-", "single\n"),
+            ("hello\nworld\n", " ", "hello world\n"),
+        ];
+        for (input, sep, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(
+                Join {
+                    separator: sep.into(),
+                },
+                input.into(),
+                &mut writer,
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
     fn trim() {
         let input = "
         Hello
@@ -260,6 +282,9 @@ fn perform_command(
                 writeln!(output, "{}", line)?;
             }
         }
+        Join { separator } => {
+            let result = join(input.lines(), &separator);
+            writeln!(output, "{}", result)?;
         }
         Length => writeln!(output, "{}", input.len())?,
         Replace { matching, with } => {

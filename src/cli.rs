@@ -28,6 +28,11 @@ pub enum StringCommand {
         #[arg(default_value = " ")]
         separator: String,
     },
+    /// Join lines with a separator into a single string
+    Join {
+        #[arg(default_value = " ")]
+        separator: String,
+    },
     /// Returns the length the input string
     Length,
     /// Replace all matching characters
