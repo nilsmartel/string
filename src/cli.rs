@@ -84,10 +84,11 @@ pub enum StringCommand {
     },
     /// Map each line of input to a subcommand.
     Each {
-        /// If set, input will be passed as stdin
+        /// If set, input will be passed to subcommand via stdin (default is replacing part of the
+        /// command with the input)
         #[arg(short = 's', long = "stdin", default_value_t = false)]
         stdin: bool,
-        /// Name of value to be replaced. Default is ""
+        /// Name of placeholder in command to be replaced with input. Default is "{}"
         #[arg(short = 'v', long = "var", default_value = "{}")]
         var: String,
         /// Command to be executed. Pass "string each -- <commands...>" so you can pass flags to the command.
