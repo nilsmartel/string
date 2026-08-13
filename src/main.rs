@@ -1,23 +1,26 @@
 mod cli;
 mod exec;
+mod pool;
+mod progress;
 mod templating;
 mod util;
 
 use templating::template;
 
+use anyhow::bail;
 use clap::Parser;
 use itertools::join;
 
 use crate::exec::execute;
+use crate::progress::Progress;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
     let input = util::stdin_as_string();
     let mut output = std::io::stdout();
 
-    let result = perform_command(command, input, &mut output);
-
-    if result.is_err() {
+    if let Err(e) = perform_command(command, input, &mut output) {
+        eprintln!("{e:#}");
         std::process::exit(1);
     }
 }
@@ -44,6 +47,10 @@ mod tests {
             TestWriter {
                 buffer: Vec::with_capacity(128),
             }
+        }
+
+        fn text(&self) -> String {
+            String::from_utf8_lossy(&self.buffer).into_owned()
         }
     }
 
@@ -353,6 +360,66 @@ mod tests {
         }
     }
 
+    fn each(threads: usize, sequential: bool, command: &[&str]) -> StringCommand {
+        Each {
+            stdin: false,
+            var: "{}".into(),
+            threads,
+            sequential,
+            command: command.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    #[test]
+    fn each_sequential_keeps_input_order() {
+        // the first line sleeps longest, so completion order is the reverse of the input
+        let command = ["sh", "-c", "sleep 0.{}; echo {}"];
+
+        for threads in [1, 4] {
+            let mut writer = TestWriter::new();
+            perform_command(
+                each(threads, true, &command),
+                "3\n2\n1\n".into(),
+                &mut writer,
+            )
+            .unwrap();
+
+            assert_eq!(writer, "3\n2\n1\n");
+        }
+    }
+
+    #[test]
+    fn each_unordered_returns_every_result() {
+        let command = ["sh", "-c", "sleep 0.{}; echo {}"];
+
+        let mut writer = TestWriter::new();
+        perform_command(each(4, false, &command), "3\n2\n1\n".into(), &mut writer).unwrap();
+
+        let text = writer.text();
+        let mut lines: Vec<&str> = text.lines().collect();
+        lines.sort();
+
+        assert_eq!(lines, ["1", "2", "3"]);
+    }
+
+    #[test]
+    fn each_reports_failures_but_finishes_the_rest() {
+        // "two" is not a number, so `test` exits non-zero for that line only
+        let command = ["sh", "-c", "test {} -gt 0 && echo {}"];
+
+        let mut writer = TestWriter::new();
+        let res = perform_command(each(1, true, &command), "1\ntwo\n3\n".into(), &mut writer);
+
+        let err = res.expect_err("one command failed, so the run must fail");
+        assert!(
+            format!("{:#}", err).contains("1 of 3"),
+            "unexpected error: {:#}",
+            err
+        );
+        // the lines around the failure still made it through
+        assert_eq!(writer, "1\n3\n");
+    }
+
     #[test]
     fn trim() {
         let input = "
@@ -478,7 +545,7 @@ fn perform_command(
             end,
             raw_output,
         } => {
-            let result = template(&input, &shell, &begin, &end, !raw_output);
+            let result = template(&input, &shell, &begin, &end, !raw_output)?;
             writeln!(output, "{}", result)?;
         }
         Chars => {
@@ -489,18 +556,53 @@ fn perform_command(
         Each {
             stdin,
             var,
+            threads,
+            sequential,
             ref command,
         } => {
-            for line in input.lines() {
-                let command: Vec<_> = command.iter().map(|s| s.replace(&var, line)).collect();
-                let input = if stdin { Some(line) } else { None };
+            let lines: Vec<&str> = input.lines().collect();
+            let mut progress = Progress::new(lines.len(), threads > 1);
+            let mut failures = 0;
 
-                let result = execute(&command, input);
-                if result.ends_with("\n") {
-                    write!(output, "{}", result)?;
-                } else {
-                    writeln!(output, "{}", result)?;
-                }
+            pool::for_each(
+                &lines,
+                threads,
+                sequential,
+                // on the worker threads
+                |line| {
+                    let command: Vec<_> = command.iter().map(|s| s.replace(&var, line)).collect();
+                    let input = if stdin { Some(*line) } else { None };
+
+                    execute(&command, input)
+                },
+                // back on this thread, so nothing is ever written half way through
+                |index, result| {
+                    match result {
+                        Ok(result) => {
+                            if result.ends_with("\n") {
+                                write!(output, "{}", result)?;
+                            } else {
+                                writeln!(output, "{}", result)?;
+                            }
+                        }
+                        Err(e) => {
+                            failures += 1;
+                            progress.clear();
+                            eprintln!("line {}: {e:#}", index + 1);
+                        }
+                    }
+
+                    // flush before redrawing, so the bar stays the last thing on the screen
+                    output.flush()?;
+                    progress.tick();
+                    Ok(())
+                },
+            )?;
+
+            progress.finish();
+
+            if failures > 0 {
+                bail!("{} of {} commands failed", failures, lines.len());
             }
         }
     };
