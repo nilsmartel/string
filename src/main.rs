@@ -9,7 +9,6 @@ use clap::Parser;
 use itertools::join;
 
 use crate::exec::execute;
-use anyhow::bail;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
@@ -242,6 +241,7 @@ mod tests {
             let mut writer = TestWriter::new();
             let res = perform_command(
                 EndsWith {
+                    not: false,
                     suffix: suffix.into(),
                 },
                 input.into(),
@@ -262,6 +262,7 @@ mod tests {
             let mut writer = TestWriter::new();
             let res = perform_command(
                 Contains {
+                    not: false,
                     pattern: pattern.into(),
                 },
                 input.into(),
@@ -277,6 +278,7 @@ mod tests {
             let mut writer = TestWriter::new();
             let res = perform_command(
                 StartsWith {
+                    not: false,
                     prefix: prefix.into(),
                 },
                 input.into(),
@@ -292,6 +294,7 @@ mod tests {
             let mut writer = TestWriter::new();
             let res = perform_command(
                 EndsWith {
+                    not: false,
                     suffix: suffix.into(),
                 },
                 input.into(),
@@ -391,20 +394,27 @@ fn perform_command(
             let result = join(input.lines(), &separator);
             writeln!(output, "{}", result)?;
         }
-        // TODO make this line based?
-        Contains {not, pattern } => {
-            if !input.trim_end_matches('\n').contains(&*pattern) {
-                bail!("no match");
+        Contains { not, pattern } => {
+            for line in input.lines() {
+                if line.contains(&pattern) != not {
+                    writeln!(output, "{line}")?;
+                }
             }
         }
         StartsWith { not, prefix } => {
-            if !input.trim_end_matches('\n').starts_with(&*prefix) {
-                bail!("no match");
+            let prefix = prefix.trim_start();
+            for line in input.lines() {
+                if line.trim_start().starts_with(&prefix) != not {
+                    writeln!(output, "{line}")?;
+                }
             }
         }
         EndsWith { not, suffix } => {
-            if !input.trim_end_matches('\n').ends_with(&*suffix) {
-                bail!("no match");
+            let suffix = suffix.trim_end();
+            for line in input.lines() {
+                if line.trim_end().ends_with(&suffix) != not {
+                    writeln!(output, "{line}")?;
+                }
             }
         }
         Length => writeln!(output, "{}", input.len())?,
