@@ -391,17 +391,18 @@ fn perform_command(
             let result = join(input.lines(), &separator);
             writeln!(output, "{}", result)?;
         }
-        Contains { pattern } => {
+        // TODO make this line based?
+        Contains {not, pattern } => {
             if !input.trim_end_matches('\n').contains(&*pattern) {
                 bail!("no match");
             }
         }
-        StartsWith { prefix } => {
+        StartsWith { not, prefix } => {
             if !input.trim_end_matches('\n').starts_with(&*prefix) {
                 bail!("no match");
             }
         }
-        EndsWith { suffix } => {
+        EndsWith { not, suffix } => {
             if !input.trim_end_matches('\n').ends_with(&*suffix) {
                 bail!("no match");
             }

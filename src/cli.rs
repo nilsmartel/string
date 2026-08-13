@@ -35,16 +35,28 @@ pub enum StringCommand {
     },
     /// Exit 0 if input contains the given string, else exit 1
     Contains {
+        /// print all lines that are NOT matching
+        #[arg(default_value = "false", short = 'n', long = "not")]
+        not: bool,
+
         #[arg()]
         pattern: String,
     },
     /// Exit 0 if input starts with the given prefix, else exit 1
     StartsWith {
+        /// print all lines that are NOT matching
+        #[arg(default_value = "false", short = 'n', long = "not")]
+        not: bool,
+
         #[arg()]
         prefix: String,
     },
     /// Exit 0 if input ends with the given suffix, else exit 1
     EndsWith {
+        /// print all lines that are NOT matching
+        #[arg(default_value = "false", short = 'n', long = "not")]
+        not: bool,
+
         #[arg()]
         suffix: String,
     },
