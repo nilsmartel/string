@@ -201,106 +201,155 @@ mod tests {
     }
 
     #[test]
-    fn predicate_contains() {
-        for (input, pattern) in [
-            ("hello world", "world"),
-            ("hello world", "hello"),
-            ("hello\nworld", "world"),
-            ("hello\nworld\n", "world"),
-        ] {
-            let mut writer = TestWriter::new();
-            let res = perform_command(
-                Contains {
-                    pattern: pattern.into(),
-                },
-                input.into(),
-                &mut writer,
-            );
-            assert!(res.is_ok());
-        }
-    }
+    fn filter_contains() {
+        let cases = [
+            ("hello world", "world", "hello world\n"),
+            ("hello world", "hello", "hello world\n"),
+            ("hello\nworld", "world", "world\n"),
+            ("hello\nworld\n", "world", "world\n"),
+            ("hello\nworld\n", "o", "hello\nworld\n"),
+            ("hello\nworld", "worlds", ""),
+            ("hello world", "helloj", ""),
+        ];
 
-    #[test]
-    fn predicate_starts_with() {
-        for (input, prefix) in [("hello world", "hello"), ("hello\nworld\n", "hello")] {
+        for (input, pattern, expected) in cases {
             let mut writer = TestWriter::new();
-            let res = perform_command(
-                StartsWith {
-                    prefix: prefix.into(),
-                },
-                input.into(),
-                &mut writer,
-            );
-            assert!(res.is_ok());
-        }
-    }
-
-    #[test]
-    fn predicate_ends_with() {
-        for (input, suffix) in [("hello world", "world"), ("hello world\n", "world")] {
-            let mut writer = TestWriter::new();
-            let res = perform_command(
-                EndsWith {
-                    not: false,
-                    suffix: suffix.into(),
-                },
-                input.into(),
-                &mut writer,
-            );
-            assert!(res.is_ok());
-        }
-    }
-
-    #[test]
-    fn predicate_contains_not() {
-        for (input, pattern) in [
-            ("hello world", "worldk"),
-            ("hello world", "helloj"),
-            ("hello\nworld", "worlds"),
-            ("hello\nworld\n", "worlds"),
-        ] {
-            let mut writer = TestWriter::new();
-            let res = perform_command(
+            perform_command(
                 Contains {
                     not: false,
                     pattern: pattern.into(),
                 },
                 input.into(),
                 &mut writer,
-            );
-            assert!(res.is_err());
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
         }
     }
 
     #[test]
-    fn predicate_starts_with_not() {
-        for (input, prefix) in [("hello world", "ello"), ("ello\nworld\n", "hello")] {
+    fn filter_contains_not() {
+        let cases = [
+            ("hello world", "world", ""),
+            ("hello\nworld", "world", "hello\n"),
+            ("hello\nworld\n", "o", ""),
+            ("hello\nworld", "worlds", "hello\nworld\n"),
+        ];
+
+        for (input, pattern, expected) in cases {
             let mut writer = TestWriter::new();
-            let res = perform_command(
+            perform_command(
+                Contains {
+                    not: true,
+                    pattern: pattern.into(),
+                },
+                input.into(),
+                &mut writer,
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn filter_starts_with() {
+        let cases = [
+            ("hello world", "hello", "hello world\n"),
+            ("hello\nworld\n", "hello", "hello\n"),
+            ("hello\nworld", "w", "world\n"),
+            // leading whitespace is ignored on both line and prefix
+            ("    hello\nworld", "hello", "    hello\n"),
+            ("hello\nworld", "  hello", "hello\n"),
+            ("hello world", "ello", ""),
+            ("ello\nworld\n", "hello", ""),
+        ];
+
+        for (input, prefix, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(
                 StartsWith {
                     not: false,
                     prefix: prefix.into(),
                 },
                 input.into(),
                 &mut writer,
-            );
-            assert!(res.is_err());
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
         }
     }
 
     #[test]
-    fn predicate_ends_with_not() {
-        for (input, suffix) in [("hello world", "worl"), ("hello world\n", "worl")] {
+    fn filter_starts_with_not() {
+        let cases = [
+            ("hello world", "hello", ""),
+            ("hello\nworld", "hello", "world\n"),
+            ("hello\nworld", "ello", "hello\nworld\n"),
+        ];
+
+        for (input, prefix, expected) in cases {
             let mut writer = TestWriter::new();
-            let res = perform_command(
+            perform_command(
+                StartsWith {
+                    not: true,
+                    prefix: prefix.into(),
+                },
+                input.into(),
+                &mut writer,
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn filter_ends_with() {
+        let cases = [
+            ("hello world", "world", "hello world\n"),
+            ("hello world\n", "world", "hello world\n"),
+            ("hello\nworld", "world", "world\n"),
+            // trailing whitespace is ignored on both line and suffix
+            ("hello\nworld   ", "world", "world   \n"),
+            ("hello\nworld", "world  ", "world\n"),
+            ("hello world", "worl", ""),
+            ("hello world\n", "worl", ""),
+        ];
+
+        for (input, suffix, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(
                 EndsWith {
                     not: false,
                     suffix: suffix.into(),
                 },
                 input.into(),
                 &mut writer,
-            );
-            assert!(res.is_err());
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
+        }
+    }
+
+    #[test]
+    fn filter_ends_with_not() {
+        let cases = [
+            ("hello world", "world", ""),
+            ("hello\nworld", "world", "hello\n"),
+            ("hello\nworld", "worl", "hello\nworld\n"),
+        ];
+
+        for (input, suffix, expected) in cases {
+            let mut writer = TestWriter::new();
+            perform_command(
+                EndsWith {
+                    not: true,
+                    suffix: suffix.into(),
+                },
+                input.into(),
+                &mut writer,
+            )
+            .unwrap();
+            assert_eq!(writer, expected);
         }
     }
 

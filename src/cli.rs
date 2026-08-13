@@ -33,7 +33,7 @@ pub enum StringCommand {
         #[arg(default_value = " ")]
         separator: String,
     },
-    /// Exit 0 if input contains the given string, else exit 1
+    /// Print all lines containing the given string
     Contains {
         /// print all lines that are NOT matching
         #[arg(default_value = "false", short = 'n', long = "not")]
@@ -42,7 +42,7 @@ pub enum StringCommand {
         #[arg()]
         pattern: String,
     },
-    /// Exit 0 if input starts with the given prefix, else exit 1
+    /// Print all lines starting with the given prefix, ignoring leading whitespace
     StartsWith {
         /// print all lines that are NOT matching
         #[arg(default_value = "false", short = 'n', long = "not")]
@@ -51,7 +51,7 @@ pub enum StringCommand {
         #[arg()]
         prefix: String,
     },
-    /// Exit 0 if input ends with the given suffix, else exit 1
+    /// Print all lines ending with the given suffix, ignoring trailing whitespace
     EndsWith {
         /// print all lines that are NOT matching
         #[arg(default_value = "false", short = 'n', long = "not")]
