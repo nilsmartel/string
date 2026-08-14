@@ -12,7 +12,7 @@ use clap::Parser;
 use itertools::join;
 
 use crate::exec::execute;
-use crate::progress::Progress;
+use crate::progress::ProgressBar;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
@@ -561,7 +561,7 @@ fn perform_command(
             ref command,
         } => {
             let lines: Vec<&str> = input.lines().collect();
-            let mut progress = Progress::new(lines.len(), threads > 1);
+            let mut progress = ProgressBar::new(lines.len(), threads > 1);
             let mut failures = 0;
 
             pool::for_each(
@@ -587,7 +587,6 @@ fn perform_command(
                         }
                         Err(e) => {
                             failures += 1;
-                            progress.clear();
                             eprintln!("line {}: {e:#}", index + 1);
                         }
                     }
@@ -598,8 +597,6 @@ fn perform_command(
                     Ok(())
                 },
             )?;
-
-            progress.finish();
 
             if failures > 0 {
                 bail!("{} of {} commands failed", failures, lines.len());
