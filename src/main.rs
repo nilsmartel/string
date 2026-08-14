@@ -1,7 +1,7 @@
 mod cli;
 mod exec;
 mod pool;
-mod progress;
+mod progressbar;
 mod templating;
 mod util;
 
@@ -12,7 +12,7 @@ use clap::Parser;
 use itertools::join;
 
 use crate::exec::execute;
-use crate::progress::ProgressBar;
+use crate::progressbar::ProgressBar;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
