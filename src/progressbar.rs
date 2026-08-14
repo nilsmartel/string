@@ -1,5 +1,9 @@
 const WIDTH: usize = 30;
 
+/// Dim grey, so the bar stays visually out of the way.
+const GREY: &str = "\x1b[2;90m";
+const RESET: &str = "\x1b[0m";
+
 /// A progress bar
 /// Rendered on stderr,
 /// so it stays out of the way of the results on stdout.
@@ -34,7 +38,7 @@ impl ProgressBar {
 
         // eprint! rather than a raw stderr handle, so the test harness captures it
         eprintln!(
-            "\r[{}{}] {}/{}",
+            "\r{GREY}[{}{}] {}/{}{RESET}",
             "#".repeat(filled),
             "-".repeat(WIDTH - filled),
             done,
