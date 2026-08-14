@@ -118,6 +118,13 @@ pub enum StringCommand {
         /// Name of placeholder in command to be replaced with input. Default is "{}"
         #[arg(short = 'v', long = "var", default_value = "{}")]
         var: String,
+        /// Number of commands to run in parallel. The default of 1 runs them one after another
+        #[arg(short = 't', long = "threads", default_value_t = 1)]
+        threads: usize,
+        /// Print the results in the order of the input, instead of the order they finish in.
+        /// Waits for earlier lines, so a single slow command holds back everything behind it
+        #[arg(long = "sequential", default_value_t = false)]
+        sequential: bool,
         /// Command to be executed. Pass "string each -- <commands...>" so you can pass flags to the command.
         command: Vec<String>,
     },

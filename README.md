@@ -12,21 +12,24 @@ Cli for common string operations. Takes input from stdin.
 Usage: string <COMMAND>
 
 Commands:
-  case        Transform upper- or lowercase
-  reverse     Reverse order of lines
-  substr      Extract part of a given string
-  split       Split up a string by a separator and print the parts on separate lines
-  length      Returns the length the input string
-  replace     Replace all matching characters
-  line        Pick a single line by index
-  interleave  Interleave input and only print every nth line
-  distinct    Output the set of input strings without repetitions, in order
-  trim        Trim whitespace on lines and ignore empty ones
-  chars       Prints all chars on separate lines
-  template    Useful for templating, replace sections of input with the output of a shell command or script
-  Map each line of input to a subcommand.
-  each        
-  help        Print this message or the help of the given subcommand(s)
+  case         Transform upper- or lowercase
+  reverse      Reverse order of lines
+  substr       Extract part of a given string
+  split        Split up a string by a separator and print the parts on separate lines
+  join         Join lines with a separator into a single string
+  contains     Print all lines containing the given string
+  starts-with  Print all lines starting with the given prefix, ignoring leading whitespace
+  ends-with    Print all lines ending with the given suffix, ignoring trailing whitespace
+  length       Returns the length the input string
+  replace      Replace all matching characters
+  line         Pick a single line by index
+  interleave   Interleave input and only print every nth line
+  distinct     Output the set of input strings without repetitions, in order
+  trim         Trim whitespace on lines and ignore empty ones
+  chars        Prints all chars on separate lines
+  template     Useful for templating, replace sections of input with the output of a shell command or script
+  each         Map each line of input to a subcommand
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help  Print help
@@ -40,9 +43,11 @@ This is mostly because there are thousands of ways to do the tasks `shell-string
 More than anything I hated finding some solution for file templating over and over again. I wrote `shell-string` to never again have to think about what the best way of templating a file is.
 It's always this, period.
 
-## Why is `shell-string` good for templating files?
+## Template Files
+`shell-string` is good for templating files.
 
-Because you practically have no restrictions.
+It's a very simple and clean solution where
+you practically have no restrictions.
 You need to just drop in some environment variables? Easy, just write `{{ echo $MY_VAR }}` into the template.
 Is complex logic needed? You could write `{{ console.log(crazyStuff()) }}` and you're golden. Just execute with `--shell=node`.
 You want to use `haskell` in your template files? Use `--shell=ghci`!
@@ -80,6 +85,65 @@ which means
 - `cat deployment.template.yaml`:   Print the file `deployment.template.yaml`
 - `| string template`:              The `|` means "don't print this in a terminal, pipe it to another programm" and that programm is `string` in `template` mode.
 - `> deployment.yaml`:              Write the output of this into a file called `deployment.yaml`. If the file existed, empty it beforehand.
+
+## Use It As A Threadpool
+
+`string each` runs a command once per line of input. Waiting for those commands one after another
+is pure waste whenever they sit on the network instead of the CPU, so `--threads` turns `each` into
+a threadpool:
+
+```sh
+cat urls.txt | string each --threads=12 -- curl -s {}
+```
+
+Twelve requests are in flight at any moment, and `string` keeps the pool full: whenever a command
+finishes, the next line is handed to the thread that just became free. Nothing is scheduled up
+front, so one slow url doesn't leave eleven threads idling.
+
+The thing that makes this usable rather than a mess is that **output is never interleaved**. The
+output of a command is collected in full and written in one piece, so twelve `curl`s can't scribble
+over each other halfway through a line. What you get is the same output you'd get from a sequential
+run, just sooner.
+
+### Watching it work
+
+Because output is buffered, a long run would otherwise look like a hung terminal. So while more than
+one thread is running, a progress bar is drawn — on stderr, never stdout:
+
+```
+[####################----------] 812/1200 (67%)
+```
+
+That split is deliberate: `... | string each -t 12 -- curl -s {} > results.txt` shows you the bar in
+the terminal while `results.txt` receives nothing but results.
+
+### Ordering
+
+Results appear in the order the commands _finish_, which is what you want when you're watching them
+come in. When you'd rather have them line up with your input, ask for it:
+
+```sh
+cat urls.txt | string each --threads=12 --sequential -- curl -s {}
+```
+
+`--sequential` holds finished results back until every earlier line is done, so the output matches
+the input line for line. The work still runs on all twelve threads — only the printing waits.
+
+### When something fails
+
+One broken url shouldn't throw away the other 1199 responses. A command that exits non-zero is
+reported on stderr, naming the line it came from, and the run carries on:
+
+```
+line 47: error executing command `curl`.
+Process terminated with exit code exit status: 6.
+Program output:
+curl: (6) Could not resolve host: exmaple.com
+```
+
+At the very end `string` prints how many commands failed and exits 1, so `&&` in a script still
+does the right thing — you just get all the successful output, and a full list of what went wrong,
+instead of everything stopping at the first problem.
 
 ## Installation
 
