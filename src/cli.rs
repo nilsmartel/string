@@ -109,7 +109,7 @@ pub enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
-    /// Map each line of input to a subcommand.
+    /// Map each line of input to a subcommand. Can be used to parallelize work
     Each {
         /// If set, input will be passed to subcommand via stdin (default is replacing part of the
         /// command with the input)
