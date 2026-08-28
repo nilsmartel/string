@@ -29,10 +29,12 @@ Commands:
   chars        Prints all chars on separate lines
   template     Useful for templating, replace sections of input with the output of a shell command or script
   each         Map each line of input to a subcommand. Can be used to parallelize work
+  completions  Print a tab completion script for your shell
   help         Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+  -h, --help     Print help
+  -V, --version  Print version
 ```
 
 ## Why does this exists
@@ -105,18 +107,6 @@ output of a command is collected in full and written in one piece, so twelve `cu
 over each other halfway through a line. What you get is the same output you'd get from a sequential
 run, just sooner.
 
-### Watching it work
-
-Because output is buffered, a long run would otherwise look like a hung terminal. So while more than
-one thread is running, a progress bar is drawn — on stderr, never stdout:
-
-```
-[####################----------] 812/1200 (67%)
-```
-
-That split is deliberate: `... | string each -t 12 -- curl -s {} > results.txt` shows you the bar in
-the terminal while `results.txt` receives nothing but results.
-
 ### Ordering
 
 Results appear in the order the commands _finish_, which is what you want when you're watching them
@@ -128,22 +118,6 @@ cat urls.txt | string each --threads=12 --sequential -- curl -s {}
 
 `--sequential` holds finished results back until every earlier line is done, so the output matches
 the input line for line. The work still runs on all twelve threads — only the printing waits.
-
-### When something fails
-
-One broken url shouldn't throw away the other 1199 responses. A command that exits non-zero is
-reported on stderr, naming the line it came from, and the run carries on:
-
-```
-line 47: error executing command `curl`.
-Process terminated with exit code exit status: 6.
-Program output:
-curl: (6) Could not resolve host: exmaple.com
-```
-
-At the very end `string` prints how many commands failed and exits 1, so `&&` in a script still
-does the right thing — you just get all the successful output, and a full list of what went wrong,
-instead of everything stopping at the first problem.
 
 ## Installation
 
@@ -168,3 +142,57 @@ and build and install the code using
 cd string   # go into the repository
 cargo install --path . --force      # use force in case the binary is alread installed
 ```
+
+## Tab Completion
+
+`string completions <shell>` prints a completion script to stdout. Save it where your shell
+looks for those, and you get tab completion for every subcommand and flag, with their help
+text as descriptions.
+
+### zsh
+
+Completion functions live in directories listed in `$fpath`, in a file named `_<command>`.
+Pick a directory you own and add it to `$fpath` **before** `compinit` runs:
+
+```sh
+mkdir -p ~/.zfunc
+string completions zsh > ~/.zfunc/_string
+```
+
+Then make sure your `~/.zshrc` contains these two lines, in this order:
+
+```sh
+fpath=(~/.zfunc $fpath)
+autoload -Uz compinit && compinit
+```
+
+`compinit` is the function that scans `$fpath` and wires up completion; it only needs to run
+once per shell, and many setups (oh-my-zsh, prezto) already call it — in that case just add the
+`fpath=(...)` line above wherever they do it. Open a new shell and try `string <TAB>`.
+
+If nothing happens, zsh is probably serving a stale completion cache. Clear it with
+`rm -f ~/.zcompdump* && compinit`.
+
+### bash
+
+Requires the `bash-completion` package (`brew install bash-completion@2` on macOS,
+`apt install bash-completion` on Debian/Ubuntu).
+
+```sh
+mkdir -p ~/.local/share/bash-completion/completions
+string completions bash > ~/.local/share/bash-completion/completions/string
+```
+
+Open a new shell. Or, to skip the package entirely, put this in your `~/.bashrc`:
+
+```sh
+source <(string completions bash)
+```
+
+### fish
+
+```sh
+string completions fish > ~/.config/fish/completions/string.fish
+```
+
+`elvish` and `powershell` are supported too, thanks to the `clap_completions` library.
