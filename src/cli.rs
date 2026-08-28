@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 
 #[derive(Subcommand, Debug)]
 pub enum CaseStyle {
@@ -9,6 +10,9 @@ pub enum CaseStyle {
 }
 
 #[derive(Parser, Debug)]
+// the package is "shell-string", but the binary users type is "string"
+#[command(name = "string")]
+#[command(version)]
 #[command(about = "Cli for common string operations. Takes input from stdin.")]
 pub enum StringCommand {
     /// Transform upper- or lowercase
@@ -128,4 +132,18 @@ pub enum StringCommand {
         /// Command to be executed. Pass "string each -- <commands...>" so you can pass flags to the command.
         command: Vec<String>,
     },
+    /// Print a tab completion script for your shell. See the README on how to install it
+    Completions {
+        /// bash, zsh, fish, elvish or powershell
+        #[arg()]
+        shell: Shell,
+    },
+}
+
+/// Write the completion script for `shell` to `output`.
+pub fn completions(shell: Shell, output: &mut impl std::io::Write) {
+    let mut command = StringCommand::command();
+    let name = command.get_name().to_string();
+
+    clap_complete::generate(shell, &mut command, name, output);
 }

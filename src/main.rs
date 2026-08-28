@@ -16,7 +16,11 @@ use crate::progressbar::ProgressBar;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
-    let input = util::stdin_as_string();
+    // nothing gets piped into `completions`, so don't sit there waiting for stdin
+    let input = match command {
+        cli::StringCommand::Completions { .. } => String::new(),
+        _ => util::stdin_as_string(),
+    };
     let mut output = std::io::stdout();
 
     if let Err(e) = perform_command(command, input, &mut output) {
@@ -602,6 +606,7 @@ fn perform_command(
                 bail!("{} of {} commands failed", failures, lines.len());
             }
         }
+        Completions { shell } => cli::completions(shell, output),
     };
 
     Ok(())
