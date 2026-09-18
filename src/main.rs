@@ -5,8 +5,6 @@ mod progressbar;
 mod templating;
 mod util;
 
-use templating::template;
-
 use anyhow::bail;
 use clap::Parser;
 use itertools::join;
@@ -560,7 +558,7 @@ fn perform_command(
             end,
             raw_output,
         } => {
-            let result = template(&input, &shell, &begin, &end, !raw_output)?;
+            let result = templating::execute_template(&input, &shell, &begin, &end, !raw_output)?;
             writeln!(output, "{}", result)?;
         }
         Chars => {

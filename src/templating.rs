@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-pub fn template(
+pub fn execute_template(
     input: &str,
     shell: &[String],
     begin: &str,
