@@ -29,7 +29,7 @@ Commands:
   chars        Prints all chars on separate lines
   template     Useful for templating, replace sections of input with the output of a shell command or script
   each         Map each line of input to a subcommand. Can be used to parallelize work
-  completions  Print a tab completion script for your shell
+  completions  Print a tab completion script for your shell. See the README on how to install it
   help         Print this message or the help of the given subcommand(s)
 
 Options:
