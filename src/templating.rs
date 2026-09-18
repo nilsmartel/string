@@ -1,12 +1,5 @@
 use crate::exec::execute;
 
-use nom::{
-    bytes::complete::{tag, take_until},
-    combinator::opt,
-    sequence::{preceded, terminated},
-    IResult,
-};
-
 /// Finds commands within a template-string (e.g. sections delimited by `begin` and `end`,
 /// excutes them sequentially and writes them back to the string.
 pub fn execute_template(
@@ -25,7 +18,7 @@ pub fn execute_template(
 
     // unwrapping is safe, this will always be Ok, rest will always be ""
     // TODO test this
-    let ast = parse(input, begin, end);
+    let ast = parse_template(input, begin, end);
 
     let mut buffer = String::with_capacity(256);
 
@@ -42,30 +35,12 @@ pub fn execute_template(
 }
 
 #[derive(PartialEq, Debug)]
-struct Content<'a> {
+struct TemplateBlock<'a> {
     text: &'a str,
     command: Option<&'a str>,
 }
 
-fn parse<'a>(s: &'a str, begin: &str, end: &str) -> Vec<Content<'a>> {
-    // many1(|st| command(st, begin, end))(s)
-    let mut input = s;
-    let mut result = Vec::new();
-    loop {
-        let (rest, command) = command(input, begin, end).unwrap();
-        result.push(command);
-
-        if rest == "" {
-            break;
-        }
-
-        input = rest;
-    }
-
-    return result;
-}
-
-/// Parse the first command from a given text, returnes the rest of the text
+/// Parse a string and extract commands from within a given text
 ///
 /// e.g.
 /// ```
@@ -73,35 +48,50 @@ fn parse<'a>(s: &'a str, begin: &str, end: &str) -> Vec<Content<'a>> {
 /// ```
 /// will yield
 /// ```
-/// Ok((
-///     "! How are you?",
+/// [
 ///     Content {
 ///         text: "hello ",
 ///         command: Some("myCommand"),
+///     },
+///     Content {
+///         text: "! How are you?",
+///         command: None,
 ///     }
-/// ))
+/// ]
 /// ```
-fn command<'a>(s: &'a str, begin: &str, end: &str) -> IResult<&'a str, Content<'a>> {
-    let (rest, text) = opt(take_until(begin))(s)?;
+fn parse_template<'a>(s: &'a str, begin: &str, end: &str) -> Vec<TemplateBlock<'a>> {
+    // many1(|st| command(st, begin, end))(s)
+    let mut rest = s;
+    let mut result = Vec::new();
+    loop {
+        let Some((text, right)) = rest.split_once(begin) else {
+            // No Commands left in the template, return the remaining string
+            result.push(TemplateBlock {
+                text: rest,
+                command: None,
+            });
+            break;
+        };
 
-    let text = match text {
-        Some(text) => text,
-        // when the beginning delimiter wasn't found, just return the whole string.
-        // No command is in here.
-        None => {
-            return Ok((
-                "",
-                Content {
-                    text: s,
-                    command: None,
-                },
-            ))
-        }
-    };
+        let Some((command, rest1)) = right.split_once(end) else {
+            // if a beginning is found without end, print error message and treat it as raw code.
+            eprintln!("found unmatched delimiter: {begin}{right}\n expected '{end}' to be found");
+            //
+            // Treat this as if no command was in here, this is safer than executing arbitrary
+            // data.
+            result.push(TemplateBlock {
+                text: rest,
+                command: None,
+            });
+            break;
+        };
 
-    let (rest, command) = opt(preceded(tag(begin), terminated(take_until(end), tag(end))))(rest)?;
+        rest = rest1;
+        let command = Some(command);
+        result.push(TemplateBlock { text, command });
+    }
 
-    Ok((rest, Content { text, command }))
+    return result;
 }
 
 #[cfg(test)]
@@ -111,7 +101,7 @@ mod test {
     #[test]
     fn template1() {
         let input = "hello (echo world)";
-        let result = template(input, &["sh".to_string()], "(", ")", true).unwrap();
+        let result = execute_template(input, &["sh".to_string()], "(", ")", true).unwrap();
         let expected = "hello world";
 
         assert_eq!(expected, result);
@@ -120,7 +110,7 @@ mod test {
     #[test]
     fn template2() {
         let input = "Hey (echo VSauce), (echo Michael) here!";
-        let result = template(input, &["sh".to_string()], "(", ")", true).unwrap();
+        let result = execute_template(input, &["sh".to_string()], "(", ")", true).unwrap();
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -129,7 +119,7 @@ mod test {
     #[test]
     fn template3() {
         let input = "Hey { echo VSauce }, { echo Michael } here!";
-        let result = template(input, &["sh".to_string()], "{", "}", true).unwrap();
+        let result = execute_template(input, &["sh".to_string()], "{", "}", true).unwrap();
         let expected = "Hey VSauce, Michael here!";
 
         assert_eq!(expected, result);
@@ -138,7 +128,7 @@ mod test {
     #[test]
     fn template4() {
         let input = "complex calculation: ^console.log(14)^";
-        let result = template(input, &["node".to_string()], "^", "^", true).unwrap();
+        let result = execute_template(input, &["node".to_string()], "^", "^", true).unwrap();
         let expected = "complex calculation: 14";
 
         assert_eq!(expected, result);
@@ -146,9 +136,9 @@ mod test {
 
     #[test]
     fn parse_empty() {
-        let res = parse("", "{", "}");
+        let res = parse_template("", "{", "}");
 
-        let content = Content {
+        let content = TemplateBlock {
             text: "",
             command: None,
         };
@@ -158,9 +148,9 @@ mod test {
 
     #[test]
     fn parse_single() {
-        let res = parse("hello", "{", "}");
+        let res = parse_template("hello", "{", "}");
 
-        let content = Content {
+        let content = TemplateBlock {
             text: "hello",
             command: None,
         };
@@ -170,14 +160,14 @@ mod test {
 
     #[test]
     fn parse_command() {
-        let res = parse("hello {{echo USER}}!", "{{", "}}");
+        let res = parse_template("hello {{echo USER}}!", "{{", "}}");
 
         let content = vec![
-            Content {
+            TemplateBlock {
                 text: "hello ",
                 command: Some("echo USER"),
             },
-            Content {
+            TemplateBlock {
                 text: "!",
                 command: None,
             },
@@ -188,89 +178,27 @@ mod test {
 
     #[test]
     fn parse_multi() {
-        let res = parse(
+        let res = parse_template(
             "hello {{echo USER}}! How do you {{echo FEEL}} today?",
             "{{",
             "}}",
         );
 
         let content = vec![
-            Content {
+            TemplateBlock {
                 text: "hello ",
                 command: Some("echo USER"),
             },
-            Content {
+            TemplateBlock {
                 text: "! How do you ",
                 command: Some("echo FEEL"),
             },
-            Content {
+            TemplateBlock {
                 text: " today?",
                 command: None,
             },
         ];
 
         assert_eq!(res, content);
-    }
-
-    #[test]
-    fn parsing() {
-        let res = command("hello {myCommand}! How are you?", "{", "}");
-        assert!(res.is_ok());
-        let res = res.unwrap();
-
-        let rest = "! How are you?";
-        let content = Content {
-            text: "hello ",
-            command: Some("myCommand"),
-        };
-
-        assert_eq!(res.0, rest);
-        assert_eq!(res.1, content);
-    }
-
-    #[test]
-    fn parsing_no_command() {
-        let res = command("hello user! How are you?", "{", "}");
-        assert!(res.is_ok());
-        let res = res.unwrap();
-
-        let rest = "";
-        let content = Content {
-            text: "hello user! How are you?",
-            command: None,
-        };
-
-        assert_eq!(res.0, rest);
-        assert_eq!(res.1, content);
-    }
-
-    #[test]
-    fn parsing_empty() {
-        let res = command("", "{", "}");
-        assert!(res.is_ok());
-        let res = res.unwrap();
-
-        let content = Content {
-            text: "",
-            command: None,
-        };
-
-        assert_eq!(res.0, "");
-        assert_eq!(res.1, content);
-    }
-
-    #[test]
-    fn parsing_command_only() {
-        let res = command("$echo hello$", "$", "$");
-        assert!(res.is_ok());
-        let res = res.unwrap();
-
-        let content = Content {
-            text: "",
-            command: Some("echo hello"),
-        };
-
-        assert_eq!(res.0, "");
-        assert_eq!(res.1, content);
     }
 }
