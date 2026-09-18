@@ -538,8 +538,19 @@ fn perform_command(
             }
         }
         Length => writeln!(output, "{}", input.len())?,
-        Replace { matching, with } => {
-            let result = join(input.split(&matching), &with);
+        Replace { replacement_pairs } => {
+            let l = replacement_pairs.len();
+            if l % 2 != 0 {
+                bail!("Expect an even number of arguments in the form\n$string1 $replacement1 $string2 $replacement2 ... $string_n $replacement_n");
+            }
+
+            let mut result = input;
+            for i in (0..l).step_by(1) {
+                let pattern = &replacement_pairs[i];
+                let replacement = &replacement_pairs[i + 1];
+                result = result.replace(pattern, &replacement);
+            }
+
             write!(output, "{}", result)?;
         }
         Line { number } => writeln!(output, "{}", pick_line(&input, number))?,

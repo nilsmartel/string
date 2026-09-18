@@ -68,10 +68,10 @@ pub enum StringCommand {
     Length,
     /// Replace all matching characters
     Replace {
+        /// Pairs of strings where first string is pattern and second string is replacement.
+        /// This way multiple replacements can be made at once
         #[arg()]
-        matching: String,
-        #[arg()]
-        with: String,
+        replacement_pairs: Vec<String>,
     },
     /// Pick a single line by index
     Line {
