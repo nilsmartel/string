@@ -7,6 +7,8 @@ use nom::{
     IResult,
 };
 
+/// Finds commands within a template-string (e.g. sections delimited by `begin` and `end`,
+/// excutes them sequentially and writes them back to the string.
 pub fn execute_template(
     input: &str,
     shell: &[String],
