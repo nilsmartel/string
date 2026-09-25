@@ -543,7 +543,7 @@ fn perform_command(
             }
 
             let mut result = input;
-            for i in (0..l).step_by(1) {
+            for i in (0..l).step_by(2) {
                 let pattern = &replacement_pairs[i];
                 let replacement = &replacement_pairs[i + 1];
                 result = result.replace(pattern, &replacement);
