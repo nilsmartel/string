@@ -43,7 +43,6 @@ I'm writing ci pipelines from time to time and manipulating strings, especially 
 Every coworker has his own style solving a problem and when it comes down to string transformation any solution not written by yourself is sheer unmaintainable.
 This is mostly because there are thousands of ways to do the tasks `shell-string` does, but this cli makes them _very obvious_ and easy to understand.
 More than anything I hated finding some solution for file templating over and over again. I wrote `shell-string` to never again have to think about what the best way of templating a file is.
-It's always this, period.
 
 ## Template Files
 `shell-string` is good for templating files.
