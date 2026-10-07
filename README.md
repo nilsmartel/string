@@ -89,9 +89,9 @@ which means
 
 ## Use It As A Threadpool
 
-`string each` runs a command once per line of input. Waiting for those commands one after another
-is pure waste whenever they sit on the network instead of the CPU, so `--threads` turns `each` into
-a threadpool:
+`string each` runs a command once per line of input.
+It can run them in parallel using the `--threads $N` flag, this way turning into a threadpool:
+(_minor note: under the hood string is using processes, not actual threads._)
 
 ```sh
 cat urls.txt | string each --threads=12 -- curl -s {}
@@ -99,10 +99,10 @@ cat urls.txt | string each --threads=12 -- curl -s {}
 
 Twelve requests are in flight at any moment, and `string` keeps the pool full: whenever a command
 finishes, the next line is handed to the thread that just became free. Nothing is scheduled up
-front, so one slow url doesn't leave eleven threads idling.
+front, so one slow request doesn't leave eleven threads idling.
 
-The thing that makes this usable rather than a mess is that **output is never interleaved**. The
-output of a command is collected in full and written in one piece, so twelve `curl`s can't scribble
+**Output is never interleaved**. 
+The output of a command is collected in full and written in one piece. Parallel commands can't scribble
 over each other halfway through a line. What you get is the same output you'd get from a sequential
 run, just sooner.
 
