@@ -1,11 +1,11 @@
 ![tests passing](https://github.com/nilsmartel/string/actions/workflows/rust.yml/badge.svg?branch=main)
 
-
 # shell-string
 
 Simple CLI to perform common string operations
 
 ## Usage
+
 ```
 Cli for common string operations. Takes input from stdin.
 
@@ -22,6 +22,7 @@ Commands:
   ends-with    Print all lines ending with the given suffix, ignoring trailing whitespace
   length       Returns the length the input string
   replace      Replace all matching characters
+  pick         Pick a single word by index
   line         Pick a single line by index
   interleave   Interleave input and only print every nth line
   distinct     Output the set of input strings without repetitions, in order
@@ -45,6 +46,7 @@ This is mostly because there are thousands of ways to do the tasks `shell-string
 More than anything I hated finding some solution for file templating over and over again. I wrote `shell-string` to never again have to think about what the best way of templating a file is.
 
 ## Template Files
+
 `shell-string` is good for templating files.
 
 It's a very simple and clean solution where
@@ -59,6 +61,7 @@ Instead it relies on using EVRYTHING, you could use in the terminal. You can spe
 Using `string template` you could even set up your very own workflow for templating files. This is especially useful in CI or when configuring a fresh system.
 
 ### Example
+
 ```yaml
 kind: Deployment
 metadata:
@@ -73,19 +76,21 @@ spec:
 ...
 ```
 
-Per default `sh` is used to interpret the command inside `{{`  and `}}` and, if these delimeters don't suite your style, that's okay. You can choose _any delimiter_ you fancy. And you should.
+Per default `sh` is used to interpret the command inside `{{` and `}}` and, if these delimeters don't suite your style, that's okay. You can choose _any delimiter_ you fancy. And you should.
 
 ### How am using a document as a template?
 
 give you have a document `deployment.template.yaml` and you want to derive a file called `deployment.yaml`, that's easy. Open a terminal and type
+
 ```sh
 cat deployment.template.yaml | string template > deployment.yaml
 ```
 
 which means
-- `cat deployment.template.yaml`:   Print the file `deployment.template.yaml`
-- `| string template`:              The `|` means "don't print this in a terminal, pipe it to another programm" and that programm is `string` in `template` mode.
-- `> deployment.yaml`:              Write the output of this into a file called `deployment.yaml`. If the file existed, empty it beforehand.
+
+- `cat deployment.template.yaml`: Print the file `deployment.template.yaml`
+- `| string template`: The `|` means "don't print this in a terminal, pipe it to another programm" and that programm is `string` in `template` mode.
+- `> deployment.yaml`: Write the output of this into a file called `deployment.yaml`. If the file existed, empty it beforehand.
 
 ## Use It As A Threadpool
 
@@ -101,7 +106,7 @@ Twelve requests are in flight at any moment, and `string` keeps the pool full: w
 finishes, the next line is handed to the thread that just became free. Nothing is scheduled up
 front, so one slow request doesn't leave eleven threads idling.
 
-**Output is never interleaved**. 
+**Output is never interleaved**.
 The output of a command is collected in full and written in one piece. Parallel commands can't scribble
 over each other halfway through a line. What you get is the same output you'd get from a sequential
 run, just sooner.
@@ -135,6 +140,7 @@ if you want the very latest version, check out this repository locally using
 ```sh
 git clone https://github.com/nilsmartel/string
 ```
+
 and build and install the code using
 
 ```sh
