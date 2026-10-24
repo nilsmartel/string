@@ -73,6 +73,16 @@ pub enum StringCommand {
         #[arg()]
         replacement_pairs: Vec<String>,
     },
+    /// Pick a single word by index
+    Pick {
+        #[arg()]
+        /// starting at 0
+        number: usize,
+
+        /// pick a word from each line
+        #[arg(default_value = "false", short = 'e', long = "each-line")]
+        each_line: bool,
+    },
     /// Pick a single line by index
     Line {
         #[arg()]

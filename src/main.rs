@@ -5,6 +5,8 @@ mod progressbar;
 mod templating;
 mod util;
 
+use std::iter::once;
+
 use anyhow::bail;
 use clap::Parser;
 use itertools::join;
@@ -616,6 +618,19 @@ fn perform_command(
             }
         }
         Completions { shell } => cli::completions(shell, output),
+        Pick { number, each_line } => {
+            let source = if each_line {
+                Box::new(input.lines()) as Box<dyn Iterator<Item = &str>>
+            } else {
+                Box::new(once(&input as &str)) as Box<dyn Iterator<Item = &str>>
+            };
+
+            for txt in source {
+                if let Some(res) = txt.split(" ").nth(number).take() {
+                    write!(output, "{}", res)?;
+                }
+            }
+        }
     };
 
     Ok(())
