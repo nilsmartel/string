@@ -123,6 +123,8 @@ pub enum StringCommand {
         /// don't trim new lines and whitespace of the start and end of output
         raw_output: bool,
     },
+    /// Reads from stdin and outputs a quoted and escaped string, which can be written safely into a json document
+    ToJson,
     /// Map each line of input to a subcommand. Can be used to parallelize work
     Each {
         /// If set, input will be passed to subcommand via stdin (default is replacing part of the

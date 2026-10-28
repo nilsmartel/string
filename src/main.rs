@@ -13,6 +13,7 @@ use itertools::join;
 
 use crate::exec::execute;
 use crate::progressbar::ProgressBar;
+use crate::util::str_to_json;
 
 fn main() {
     let command: cli::StringCommand = cli::StringCommand::parse();
@@ -630,6 +631,10 @@ fn perform_command(
                     write!(output, "{}", res)?;
                 }
             }
+        }
+        ToJson => {
+            let out = str_to_json(&input);
+            write!(output, "{out}")?;
         }
     };
 
