@@ -628,7 +628,7 @@ fn perform_command(
 
             for txt in source {
                 if let Some(res) = txt.split(" ").nth(number).take() {
-                    write!(output, "{}", res)?;
+                    writeln!(output, "{}", res)?;
                 }
             }
         }
