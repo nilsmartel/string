@@ -627,7 +627,11 @@ fn perform_command(
             };
 
             for txt in source {
-                if let Some(res) = txt.split(" ").nth(number).take() {
+                if let Some(res) = txt
+                    .split(|c: char| matches!(c, ' ' | '\n'))
+                    .nth(number)
+                    .take()
+                {
                     writeln!(output, "{}", res)?;
                 }
             }
